@@ -23,6 +23,7 @@ export default function Player() {
   const [bookLang, setBookLang] = useState('en-US');
 
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
+  const [showMobilePanel, setShowMobilePanel] = useState(false);
 
   const CHUNK_SIZE = 10;
   const [cacheTrigger, setCacheTrigger] = useState(0);
@@ -309,9 +310,6 @@ export default function Player() {
         : []);
 
   const breakdownList = Array.isArray(analysis?.breakdown) ? analysis.breakdown : [];
-
-  // 모바일 해석 패널 토글
-  const [showMobilePanel, setShowMobilePanel] = useState(false);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 relative overflow-hidden">
