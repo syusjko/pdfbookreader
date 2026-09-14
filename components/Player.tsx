@@ -200,23 +200,23 @@ export default function Player() {
 
   if (sentences.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #f8f9ff 0%, #fff 30%, #fffaf5 60%, #f5faff 100%)' }}>
+      <div className="min-h-screen bg-white flex flex-col font-sans text-black">
         
         {/* 상단 네비게이션 */}
-        <nav className="flex items-center justify-between px-8 py-5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4285f4, #a259ff)' }}>
-              <BookOpen className="w-4 h-4 text-white" />
+        <nav className="flex items-center justify-between px-8 py-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 bg-black flex items-center justify-center">
+              <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900 tracking-tight">BookReader</span>
+            <span className="text-base font-bold tracking-tight">BookReader</span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-sm text-gray-500 hover:text-indigo-600 transition"
+            className="text-xs font-mono text-gray-500 hover:text-black transition-colors"
           >
-            Get API Key →
+            [ GET_API_KEY ]
           </a>
         </nav>
 
@@ -224,76 +224,62 @@ export default function Player() {
         <main className="flex-1 flex flex-col items-center justify-center px-6 pb-16">
           
           {/* 제목 영역 */}
-          <div className="text-center mb-12 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium mb-6 tracking-wide border" style={{ background: 'linear-gradient(135deg, #eef2ff, #faf5ff)', borderColor: '#e0d4fc', color: '#6d28d9' }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'linear-gradient(135deg, #4285f4, #a259ff)' }} />
-              Powered by Gemini AI
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
-              <span className="text-gray-900">Read books in</span><br />
-              <span style={{ background: 'linear-gradient(135deg, #4285f4, #a259ff, #ea4335)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>any language.</span>
+          <div className="text-center mb-16 max-w-2xl">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-6">
+              READ.<br />
+              <span className="text-gray-400">TRANSLATE.</span>
             </h1>
-            <p className="text-lg text-gray-500 leading-relaxed max-w-lg mx-auto">
-              PDF를 업로드하면 AI가 문장을 읽어주고, 실시간 번역과<br className="hidden md:block" />
-              구문 분석(직독직해)을 제공합니다.
+            <p className="text-sm md:text-base text-gray-600 max-w-md mx-auto">
+              PDF 문서를 업로드하면 기계가 문장을 소리 내어 읽고, 구조를 해체하여 직독직해를 제공합니다.
             </p>
           </div>
 
-          {/* 기능 태그 — 각각 다른 색상 */}
-          <div className="flex flex-wrap justify-center gap-3 mb-10">
-            {[
-              { icon: '🎧', label: 'TTS 음성 읽기', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
-              { icon: '🌐', label: '실시간 번역', bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d' },
-              { icon: '📐', label: '구문 분석', bg: '#fefce8', border: '#fde68a', color: '#a16207' },
-              { icon: '📖', label: '챕터 내비게이션', bg: '#fdf2f8', border: '#fbcfe8', color: '#be185d' },
-            ].map((f) => (
-              <div key={f.label} className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style={{ background: f.bg, borderWidth: 1, borderColor: f.border, color: f.color }}>
-                <span>{f.icon}</span>
-                <span>{f.label}</span>
+          {/* 기능 태그 — 무채색 미니멀 */}
+          <div className="flex flex-wrap justify-center gap-2 mb-12">
+            {['TEXT-TO-SPEECH', 'TRANSLATION', 'SYNTAX-ANALYSIS', 'CHAPTER-NAV'].map((label) => (
+              <div key={label} className="px-3 py-1 border border-gray-300 text-[10px] md:text-xs font-mono text-gray-500 uppercase tracking-wider">
+                {label}
               </div>
             ))}
           </div>
 
           {/* 업로드 + API 키 카드 */}
-          <div className="w-full max-w-xl space-y-4">
+          <div className="w-full max-w-md space-y-3">
             
             {/* 파일 업로드 영역 */}
-            <label className="relative flex flex-col items-center justify-center w-full h-52 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 group overflow-hidden" style={{ borderColor: '#c7d2fe', background: 'linear-gradient(180deg, #fafaff, #f5f3ff)' }}>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(180deg, #eef2ff, #ede9fe)' }} />
-              <div className="relative flex flex-col items-center z-10">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:shadow-lg transition-all duration-300" style={{ border: '1px solid #ddd6fe' }}>
-                  <UploadCloud className="w-7 h-7 text-indigo-400 group-hover:text-indigo-600 transition" />
-                </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">클릭하여 PDF 파일 업로드</p>
-                <p className="text-xs text-gray-400">또는 파일을 여기에 드래그</p>
+            <label className="flex flex-col items-center justify-center w-full h-48 border border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group">
+              <div className="flex flex-col items-center text-center px-4">
+                <UploadCloud className="w-6 h-6 text-black mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                <p className="text-sm font-semibold text-black mb-1">UPLOAD PDF</p>
+                <p className="text-xs text-gray-500">Click or drag and drop</p>
               </div>
               <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
             </label>
 
             {/* API 키 입력 */}
-            <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl" style={{ background: '#fafafa', border: '1px solid #eee' }}>
+            <div className="flex items-center gap-3 px-4 py-3 border border-gray-300 bg-white">
               <Key className="w-4 h-4 text-gray-400 shrink-0" />
               <input 
                 type="password" 
-                placeholder="Gemini API 키를 입력하세요 (선택 사항)" 
+                placeholder="Enter API Key (Optional)" 
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 outline-none"
+                className="flex-1 bg-transparent text-sm font-mono text-black placeholder:text-gray-400 outline-none"
               />
             </div>
 
             {isLoading && (
-              <div className="flex items-center justify-center gap-3 py-4">
-                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm font-medium" style={{ color: '#6d28d9' }}>책 본문을 스캔하고 있습니다...</span>
+              <div className="flex items-center justify-center gap-3 py-6">
+                <div className="w-4 h-4 border border-black border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-mono text-black uppercase tracking-widest">Processing...</span>
               </div>
             )}
           </div>
         </main>
 
         {/* 하단 푸터 */}
-        <footer className="text-center py-6">
-          <p className="text-xs text-gray-400">Built with Next.js · 100% 무료 · 모든 처리는 브라우저에서 수행됩니다</p>
+        <footer className="text-center py-6 border-t border-gray-200">
+          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Client-side Processing</p>
         </footer>
       </div>
     );
@@ -312,16 +298,16 @@ export default function Player() {
   const breakdownList = Array.isArray(analysis?.breakdown) ? analysis.breakdown : [];
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 relative overflow-hidden">
+    <div className="flex flex-col h-screen bg-white font-sans text-black relative overflow-hidden">
       
       {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
-      <div className="hidden md:block absolute left-0 top-0 bottom-28 w-72 z-50 group">
-        <div className="absolute inset-0 w-16 bg-transparent z-10" />
-        <div className="absolute inset-0 p-8 pl-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto">
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-8 uppercase">Contents</h2>
-          <div className="space-y-6">
+      <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group border-r border-transparent hover:border-gray-200 transition-colors bg-white">
+        <div className="absolute inset-0 w-12 bg-transparent z-10" />
+        <div className="absolute inset-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto bg-white/95">
+          <h2 className="text-[10px] font-mono tracking-widest text-gray-400 mb-8 uppercase">Index</h2>
+          <div className="space-y-4">
             {chapters.length === 0 ? (
-              <div className="text-slate-400 text-sm">감지된 챕터가 없습니다.</div>
+              <div className="text-gray-400 text-xs font-mono">NO CHAPTERS</div>
             ) : (
               chapters.map((chap, i) => {
                 const isCurrent = currentIndex >= chap.index && (i === chapters.length - 1 || currentIndex < chapters[i+1].index);
@@ -329,10 +315,10 @@ export default function Player() {
                   <button
                     key={chap.index}
                     onClick={() => setCurrentIndex(chap.index)}
-                    className={`block w-full text-left text-sm transition-all duration-300 ${
+                    className={`block w-full text-left text-xs font-mono transition-all duration-200 uppercase ${
                       isCurrent 
-                        ? 'text-blue-600 font-extrabold translate-x-2 scale-105 origin-left' 
-                        : 'text-slate-400 hover:text-slate-700 hover:translate-x-1'
+                        ? 'text-black font-bold pl-2 border-l-2 border-black' 
+                        : 'text-gray-400 hover:text-black hover:pl-1'
                     }`}
                   >
                     {chap.title}
@@ -344,18 +330,18 @@ export default function Player() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden border-b border-gray-200">
         
         {/* 중앙 본문 영역 */}
-        <div className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-white shadow-sm m-2 md:m-4 rounded-xl md:rounded-2xl border min-h-0">
+        <div className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0">
           <AnimatePresence mode="popLayout">
             {prevSentence && (
               <motion.div
                 key={`prev-${currentIndex}`}
                 initial={{ opacity: 1, y: 0 }}
-                animate={{ opacity: 0.15, y: -60, scale: 0.95 }}
+                animate={{ opacity: 0.1, y: -60, scale: 0.98 }}
                 exit={{ opacity: 0 }}
-                className="absolute text-gray-400 text-sm md:text-xl text-center max-w-3xl px-4 hidden md:block"
+                className="absolute text-black text-sm md:text-lg text-center max-w-3xl px-4 hidden md:block tracking-tight"
                 style={{ top: '15%' }}
               >
                 {prevSentence}
@@ -364,22 +350,23 @@ export default function Player() {
 
             <motion.div
               key={`current-${currentIndex}`}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -40 }}
-              transition={{ type: "spring", stiffness: 120, damping: 20 }}
-              className="absolute flex flex-col items-center justify-center max-w-5xl w-full z-10 px-3 md:px-4"
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "tween", duration: 0.3 }}
+              className="absolute flex flex-col items-center justify-center max-w-5xl w-full z-10 px-4 md:px-8"
             >
-              <div className="text-slate-800 font-bold text-xl sm:text-2xl md:text-3xl lg:text-5xl text-center leading-snug md:leading-tight drop-shadow-sm w-full">
+              <div className="text-black font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-center leading-snug md:leading-tight tracking-tighter w-full">
                 {currentSentence}
               </div>
 
               {/* 번역 자막 */}
               {analysis?.translation && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 md:mt-8 text-sm sm:text-base md:text-xl lg:text-2xl text-slate-500 font-medium text-center tracking-wide px-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="mt-6 md:mt-10 text-xs sm:text-sm md:text-base text-gray-500 font-mono text-center tracking-wide px-2 uppercase"
                 >
                   {analysis.translation}
                 </motion.div>
@@ -390,8 +377,8 @@ export default function Player() {
               <motion.div
                 key={`next-${currentIndex}`}
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.1, y: 60, scale: 0.95 }}
-                className="absolute text-gray-300 text-sm md:text-xl text-center max-w-3xl px-4 hidden md:block"
+                animate={{ opacity: 0.05, y: 60, scale: 0.98 }}
+                className="absolute text-black text-sm md:text-lg text-center max-w-3xl px-4 hidden md:block tracking-tight"
                 style={{ bottom: '15%' }}
               >
                 {nextSentence}
@@ -400,38 +387,36 @@ export default function Player() {
           </AnimatePresence>
         </div>
 
-        {/* 우측 패널: 직독직해 — 데스크톱에서만 사이드바 */}
-        <div className="hidden md:flex w-96 bg-white border-l shadow-sm flex-col z-10">
-          <div className="p-4 border-b bg-blue-50/50 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-slate-800">AI 해석 & 직독직해</h3>
+        {/* 우측 패널: 직독직해 — 데스크톱에서만 */}
+        <div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
+          <div className="p-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
+            <span className="w-2 h-2 bg-black rounded-full" />
           </div>
           
           <div className="flex-1 p-6 overflow-y-auto">
             {!apiKey ? (
-              <div className="text-center text-gray-500 mt-10">
-                <Key className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                <p className="text-sm">API 키를 입력하면 이곳에<br/>해석이 나타납니다.</p>
+              <div className="text-center text-gray-400 mt-10">
+                <p className="text-xs font-mono uppercase tracking-widest mb-2">[ API_KEY_REQUIRED ]</p>
+                <p className="text-[10px] text-gray-400">Settings &gt; API Key</p>
               </div>
             ) : isAnalyzing ? (
-              <div className="animate-pulse flex flex-col gap-4 mt-4">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div className="animate-pulse flex flex-col gap-3 mt-4">
+                <div className="h-2 bg-gray-200 w-3/4"></div>
+                <div className="h-2 bg-gray-200 w-full"></div>
+                <div className="h-2 bg-gray-200 w-5/6"></div>
               </div>
             ) : analysis ? (
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-3">Sentence Breakdown</h4>
                   {breakdownList.length > 0 ? (
-                    <div className="leading-[2.5rem] text-sm break-words">
+                    <div className="leading-[2.2rem] text-sm break-words">
                       {breakdownList.map((item, idx) => (
                         <span key={idx} className="inline-block mr-1">
-                          <span className="text-slate-800 font-bold">{item.chunk}</span>
-                          <span className="text-blue-600 font-medium ml-1">({item.meaning})</span>
-                          <sup className="text-gray-400 ml-0.5 tracking-tighter">{item.role}</sup>
+                          <span className="text-black font-semibold">{item.chunk}</span>
+                          <span className="text-gray-500 text-xs ml-1 font-mono">[{item.meaning}]</span>
                           {idx < breakdownList.length - 1 && (
-                            <span className="text-slate-300 mx-1.5 align-middle">/</span>
+                            <span className="text-gray-300 mx-2 align-middle">/</span>
                           )}
                         </span>
                       ))}
@@ -439,14 +424,14 @@ export default function Player() {
                   ) : grammarList.length > 0 ? (
                     <ul className="space-y-3">
                       {grammarList.map((point: string, idx: number) => (
-                        <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
-                          <span className="text-blue-400 mt-0.5">•</span>
+                        <li key={idx} className="text-xs font-mono text-gray-600 flex items-start gap-2">
+                          <span className="text-black">-</span>
                           <span>{point.replace(/^- /g, '')}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <div className="text-sm text-gray-400 py-4">구문 분석 결과가 없습니다.</div>
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-gray-400 py-4">No data</div>
                   )}
                 </div>
               </div>
@@ -462,39 +447,35 @@ export default function Player() {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-200 rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)] max-h-[55vh] flex flex-col"
+            transition={{ type: 'tween', duration: 0.2 }}
+            className="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-black max-h-[60vh] flex flex-col shadow-2xl"
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-blue-600" />
-                <h3 className="font-semibold text-sm text-slate-800">AI 해석 & 직독직해</h3>
-              </div>
-              <button onClick={() => setShowMobilePanel(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-2">×</button>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 shrink-0">
+              <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
+              <button onClick={() => setShowMobilePanel(false)} className="text-black text-lg leading-none px-2 font-mono">×</button>
             </div>
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 p-5 overflow-y-auto">
               {isAnalyzing ? (
                 <div className="animate-pulse flex flex-col gap-3">
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  <div className="h-2 bg-gray-200 w-3/4"></div>
+                  <div className="h-2 bg-gray-200 w-full"></div>
                 </div>
               ) : analysis ? (
                 <div>
                   {breakdownList.length > 0 ? (
-                    <div className="leading-[2.2rem] text-sm break-words">
+                    <div className="leading-[2rem] text-sm break-words">
                       {breakdownList.map((item, idx) => (
                         <span key={idx} className="inline-block mr-1">
-                          <span className="text-slate-800 font-bold">{item.chunk}</span>
-                          <span className="text-blue-600 font-medium ml-1">({item.meaning})</span>
-                          <sup className="text-gray-400 ml-0.5 tracking-tighter">{item.role}</sup>
+                          <span className="text-black font-semibold">{item.chunk}</span>
+                          <span className="text-gray-500 text-xs ml-1 font-mono">[{item.meaning}]</span>
                           {idx < breakdownList.length - 1 && (
-                            <span className="text-slate-300 mx-1 align-middle">/</span>
+                            <span className="text-gray-300 mx-1 align-middle">/</span>
                           )}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-400">분석 결과가 없습니다.</div>
+                    <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No data</div>
                   )}
                 </div>
               ) : null}
@@ -504,24 +485,24 @@ export default function Player() {
       </div>
 
       {/* 하단 재생 바 */}
-      <div className="h-20 md:h-28 bg-white border-t flex flex-col justify-center px-4 md:px-8 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-20">
+      <div className="h-24 md:h-24 bg-white flex flex-col justify-center px-4 md:px-10 z-20">
         
-        <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
-          <span className="text-[10px] md:text-xs font-mono text-gray-400 font-medium w-6 md:w-8 text-right">{currentIndex + 1}</span>
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <span className="text-[10px] font-mono text-gray-400 w-8 text-right">{currentIndex + 1}</span>
           
-          <div className="relative flex-1 flex items-center h-4 group">
-            <div className="absolute w-full h-1 md:h-1.5 bg-gray-200 rounded-lg pointer-events-none" />
+          <div className="relative flex-1 flex items-center h-2 group">
+            <div className="absolute w-full h-[2px] bg-gray-200 pointer-events-none" />
             
             <div 
-              className="absolute h-1 md:h-1.5 bg-blue-500 rounded-l-lg pointer-events-none transition-all duration-150"
+              className="absolute h-[2px] bg-black pointer-events-none transition-all duration-150"
               style={{ width: `${(currentIndex / Math.max(1, sentences.length - 1)) * 100}%` }} 
             />
             
             {chapters.map((chap) => (
               <div 
                 key={chap.index}
-                className="absolute w-1 md:w-1.5 h-2 md:h-3 bg-white border border-slate-300 rounded-sm hover:scale-150 hover:bg-blue-500 hover:border-blue-600 transition-all z-10 cursor-pointer shadow-sm"
-                style={{ left: `calc(${(chap.index / Math.max(1, sentences.length - 1)) * 100}% - 2px)` }}
+                className="absolute w-[2px] h-[8px] bg-white border border-gray-400 hover:border-black hover:bg-black transition-all z-10 cursor-pointer"
+                style={{ left: `calc(${(chap.index / Math.max(1, sentences.length - 1)) * 100}% - 1px)` }}
                 title={chap.title}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -540,37 +521,37 @@ export default function Player() {
             />
           </div>
 
-          <span className="text-[10px] md:text-xs font-mono text-gray-400 font-medium w-6 md:w-8">{sentences.length}</span>
+          <span className="text-[10px] font-mono text-gray-400 w-8">{sentences.length}</span>
         </div>
         
-        <div className="flex justify-center items-center gap-4 md:gap-6">
+        <div className="flex justify-center items-center gap-6 md:gap-10">
           <button 
             onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
-            className="p-2 md:p-3 rounded-full hover:bg-gray-100 text-slate-600 transition"
+            className="p-2 text-gray-400 hover:text-black transition-colors"
           >
-            <SkipBack className="w-4 h-4 md:w-5 md:h-5" />
+            <SkipBack className="w-4 h-4" />
           </button>
           
           {/* 모바일: 해석 패널 토글 버튼 */}
           <button 
             onClick={() => setShowMobilePanel(!showMobilePanel)}
-            className="md:hidden p-2 rounded-full hover:bg-blue-50 text-blue-500 transition"
+            className="md:hidden p-2 text-gray-400 hover:text-black transition-colors"
           >
             <BookOpen className="w-4 h-4" />
           </button>
 
           <button 
             onClick={togglePlay}
-            className="p-3 md:p-4 bg-blue-600 rounded-full hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-white transform hover:scale-105 active:scale-95"
+            className="w-12 h-12 flex items-center justify-center bg-black text-white hover:bg-gray-800 transition-colors"
           >
-            {isPlaying ? <Pause className="w-5 h-5 md:w-7 md:h-7" /> : <Play className="w-5 h-5 md:w-7 md:h-7 ml-0.5" />}
+            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
           </button>
           
           <button 
             onClick={() => setCurrentIndex(Math.min(sentences.length - 1, currentIndex + 1))}
-            className="p-2 md:p-3 rounded-full hover:bg-gray-100 text-slate-600 transition"
+            className="p-2 text-gray-400 hover:text-black transition-colors"
           >
-            <SkipForward className="w-4 h-4 md:w-5 md:h-5" />
+            <SkipForward className="w-4 h-4" />
           </button>
         </div>
       </div>
