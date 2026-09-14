@@ -301,9 +301,9 @@ export default function Player() {
     <div className="flex flex-col h-screen bg-white font-sans text-black relative overflow-hidden">
       
       {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
-      <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group border-r border-transparent hover:border-gray-200 transition-colors bg-white">
+      <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group transition-colors">
         <div className="absolute inset-0 w-12 bg-transparent z-10" />
-        <div className="absolute inset-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto bg-white/95">
+        <div className="absolute inset-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto">
           <h2 className="text-[10px] font-mono tracking-widest text-gray-400 mb-8 uppercase">Index</h2>
           <div className="space-y-4">
             {chapters.length === 0 ? (
