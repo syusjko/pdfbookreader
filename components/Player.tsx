@@ -238,6 +238,8 @@ export default function Player() {
         ? (analysis.grammar as string).split('\n').filter(s => s.trim().length > 0) 
         : []);
 
+  const breakdownList = Array.isArray(analysis?.breakdown) ? analysis.breakdown : [];
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 relative overflow-hidden">
       
@@ -355,14 +357,14 @@ export default function Player() {
                 {/* 컴팩트한 슬래시 표기법 직독직해 */}
                 <div>
                   <h4 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-3">Sentence Breakdown</h4>
-                  {Array.isArray(analysis.breakdown) && analysis.breakdown.length > 0 ? (
+                  {breakdownList.length > 0 ? (
                     <div className="leading-[2.5rem] text-sm break-words">
-                      {analysis.breakdown.map((item, idx) => (
+                      {breakdownList.map((item, idx) => (
                         <span key={idx} className="inline-block mr-1">
                           <span className="text-slate-800 font-bold">{item.chunk}</span>
                           <span className="text-blue-600 font-medium ml-1">({item.meaning})</span>
                           <sup className="text-gray-400 ml-0.5 tracking-tighter">{item.role}</sup>
-                          {idx < analysis.breakdown.length - 1 && (
+                          {idx < breakdownList.length - 1 && (
                             <span className="text-slate-300 mx-1.5 align-middle">/</span>
                           )}
                         </span>
