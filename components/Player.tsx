@@ -199,19 +199,21 @@ export default function Player() {
 
   if (sentences.length === 0) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(160deg, #f8f9ff 0%, #fff 30%, #fffaf5 60%, #f5faff 100%)' }}>
         
         {/* 상단 네비게이션 */}
-        <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
+        <nav className="flex items-center justify-between px-8 py-5">
           <div className="flex items-center gap-2.5">
-            <BookOpen className="w-6 h-6 text-blue-600" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4285f4, #a259ff)' }}>
+              <BookOpen className="w-4 h-4 text-white" />
+            </div>
             <span className="text-lg font-semibold text-gray-900 tracking-tight">BookReader</span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-sm text-gray-500 hover:text-blue-600 transition"
+            className="text-sm text-gray-500 hover:text-indigo-600 transition"
           >
             Get API Key →
           </a>
@@ -222,12 +224,13 @@ export default function Player() {
           
           {/* 제목 영역 */}
           <div className="text-center mb-12 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium mb-6 tracking-wide">
-              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium mb-6 tracking-wide border" style={{ background: 'linear-gradient(135deg, #eef2ff, #faf5ff)', borderColor: '#e0d4fc', color: '#6d28d9' }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'linear-gradient(135deg, #4285f4, #a259ff)' }} />
               Powered by Gemini AI
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 tracking-tight leading-[1.1] mb-5">
-              Read books in<br />any language.
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5">
+              <span className="text-gray-900">Read books in</span><br />
+              <span style={{ background: 'linear-gradient(135deg, #4285f4, #a259ff, #ea4335)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>any language.</span>
             </h1>
             <p className="text-lg text-gray-500 leading-relaxed max-w-lg mx-auto">
               PDF를 업로드하면 AI가 문장을 읽어주고, 실시간 번역과<br className="hidden md:block" />
@@ -235,15 +238,15 @@ export default function Player() {
             </p>
           </div>
 
-          {/* 기능 태그 */}
+          {/* 기능 태그 — 각각 다른 색상 */}
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {[
-              { icon: '🎧', label: 'TTS 음성 읽기' },
-              { icon: '🌐', label: '실시간 번역' },
-              { icon: '📐', label: '구문 분석' },
-              { icon: '📖', label: '챕터 내비게이션' },
+              { icon: '🎧', label: 'TTS 음성 읽기', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+              { icon: '🌐', label: '실시간 번역', bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d' },
+              { icon: '📐', label: '구문 분석', bg: '#fefce8', border: '#fde68a', color: '#a16207' },
+              { icon: '📖', label: '챕터 내비게이션', bg: '#fdf2f8', border: '#fbcfe8', color: '#be185d' },
             ].map((f) => (
-              <div key={f.label} className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-sm text-gray-600">
+              <div key={f.label} className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style={{ background: f.bg, borderWidth: 1, borderColor: f.border, color: f.color }}>
                 <span>{f.icon}</span>
                 <span>{f.label}</span>
               </div>
@@ -254,10 +257,11 @@ export default function Player() {
           <div className="w-full max-w-xl space-y-4">
             
             {/* 파일 업로드 영역 */}
-            <label className="flex flex-col items-center justify-center w-full h-52 border border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gray-50/50 hover:bg-blue-50/60 hover:border-blue-300 transition-all duration-300 group">
-              <div className="flex flex-col items-center">
-                <div className="w-14 h-14 bg-white border border-gray-200 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-blue-200 transition-all">
-                  <UploadCloud className="w-7 h-7 text-gray-400 group-hover:text-blue-500 transition" />
+            <label className="relative flex flex-col items-center justify-center w-full h-52 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 group overflow-hidden" style={{ borderColor: '#c7d2fe', background: 'linear-gradient(180deg, #fafaff, #f5f3ff)' }}>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(180deg, #eef2ff, #ede9fe)' }} />
+              <div className="relative flex flex-col items-center z-10">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:shadow-lg transition-all duration-300" style={{ border: '1px solid #ddd6fe' }}>
+                  <UploadCloud className="w-7 h-7 text-indigo-400 group-hover:text-indigo-600 transition" />
                 </div>
                 <p className="text-sm font-medium text-gray-700 mb-1">클릭하여 PDF 파일 업로드</p>
                 <p className="text-xs text-gray-400">또는 파일을 여기에 드래그</p>
@@ -266,7 +270,7 @@ export default function Player() {
             </label>
 
             {/* API 키 입력 */}
-            <div className="flex items-center gap-3 px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl">
+            <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl" style={{ background: '#fafafa', border: '1px solid #eee' }}>
               <Key className="w-4 h-4 text-gray-400 shrink-0" />
               <input 
                 type="password" 
@@ -279,15 +283,15 @@ export default function Player() {
 
             {isLoading && (
               <div className="flex items-center justify-center gap-3 py-4">
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm text-blue-600 font-medium">책 본문을 스캔하고 있습니다...</span>
+                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm font-medium" style={{ color: '#6d28d9' }}>책 본문을 스캔하고 있습니다...</span>
               </div>
             )}
           </div>
         </main>
 
         {/* 하단 푸터 */}
-        <footer className="text-center py-6 border-t border-gray-50">
+        <footer className="text-center py-6">
           <p className="text-xs text-gray-400">Built with Next.js · 100% 무료 · 모든 처리는 브라우저에서 수행됩니다</p>
         </footer>
       </div>
