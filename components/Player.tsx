@@ -199,31 +199,97 @@ export default function Player() {
 
   if (sentences.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-        <div className="w-full max-w-lg mb-8 bg-white p-6 rounded-xl shadow-sm border">
-          <div className="flex items-center gap-3 mb-4 text-blue-600">
-            <Key className="w-6 h-6" />
-            <h2 className="font-semibold text-lg">Gemini API 키 입력 (선택)</h2>
+      <div className="min-h-screen bg-white flex flex-col">
+        
+        {/* 상단 네비게이션 */}
+        <nav className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <BookOpen className="w-6 h-6 text-blue-600" />
+            <span className="text-lg font-semibold text-gray-900 tracking-tight">BookReader</span>
           </div>
-          <p className="text-sm text-gray-500 mb-4">문법 분석과 번역 기능을 사용하려면 구글 AI 스튜디오에서 무료 API 키를 발급받아 입력해주세요.</p>
-          <input 
-            type="password" 
-            placeholder="AIzaSy..." 
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
+          <a 
+            href="https://aistudio.google.com/apikey" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm text-gray-500 hover:text-blue-600 transition"
+          >
+            Get API Key →
+          </a>
+        </nav>
 
-        <label className="flex flex-col items-center justify-center w-full max-w-lg h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-white hover:bg-blue-50 transition group">
-          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            <UploadCloud className="w-12 h-12 mb-4 text-gray-400 group-hover:text-blue-500 transition" />
-            <p className="mb-2 text-gray-700"><span className="font-semibold">클릭하거나 드래그하여 책(PDF) 업로드</span></p>
-            <p className="text-sm text-gray-500">목차를 제외한 본문을 자동으로 찾아 읽기 시작합니다.</p>
+        {/* 메인 히어로 섹션 */}
+        <main className="flex-1 flex flex-col items-center justify-center px-6 pb-16">
+          
+          {/* 제목 영역 */}
+          <div className="text-center mb-12 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium mb-6 tracking-wide">
+              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+              Powered by Gemini AI
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 tracking-tight leading-[1.1] mb-5">
+              Read books in<br />any language.
+            </h1>
+            <p className="text-lg text-gray-500 leading-relaxed max-w-lg mx-auto">
+              PDF를 업로드하면 AI가 문장을 읽어주고, 실시간 번역과<br className="hidden md:block" />
+              구문 분석(직독직해)을 제공합니다.
+            </p>
           </div>
-          <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
-        </label>
-        {isLoading && <p className="mt-6 text-blue-600 font-medium animate-pulse">📚 책 본문을 스캔하고 있습니다...</p>}
+
+          {/* 기능 태그 */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {[
+              { icon: '🎧', label: 'TTS 음성 읽기' },
+              { icon: '🌐', label: '실시간 번역' },
+              { icon: '📐', label: '구문 분석' },
+              { icon: '📖', label: '챕터 내비게이션' },
+            ].map((f) => (
+              <div key={f.label} className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-sm text-gray-600">
+                <span>{f.icon}</span>
+                <span>{f.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 업로드 + API 키 카드 */}
+          <div className="w-full max-w-xl space-y-4">
+            
+            {/* 파일 업로드 영역 */}
+            <label className="flex flex-col items-center justify-center w-full h-52 border border-dashed border-gray-300 rounded-2xl cursor-pointer bg-gray-50/50 hover:bg-blue-50/60 hover:border-blue-300 transition-all duration-300 group">
+              <div className="flex flex-col items-center">
+                <div className="w-14 h-14 bg-white border border-gray-200 rounded-2xl flex items-center justify-center mb-4 shadow-sm group-hover:shadow-md group-hover:border-blue-200 transition-all">
+                  <UploadCloud className="w-7 h-7 text-gray-400 group-hover:text-blue-500 transition" />
+                </div>
+                <p className="text-sm font-medium text-gray-700 mb-1">클릭하여 PDF 파일 업로드</p>
+                <p className="text-xs text-gray-400">또는 파일을 여기에 드래그</p>
+              </div>
+              <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
+            </label>
+
+            {/* API 키 입력 */}
+            <div className="flex items-center gap-3 px-5 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl">
+              <Key className="w-4 h-4 text-gray-400 shrink-0" />
+              <input 
+                type="password" 
+                placeholder="Gemini API 키를 입력하세요 (선택 사항)" 
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 outline-none"
+              />
+            </div>
+
+            {isLoading && (
+              <div className="flex items-center justify-center gap-3 py-4">
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-blue-600 font-medium">책 본문을 스캔하고 있습니다...</span>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* 하단 푸터 */}
+        <footer className="text-center py-6 border-t border-gray-50">
+          <p className="text-xs text-gray-400">Built with Next.js · 100% 무료 · 모든 처리는 브라우저에서 수행됩니다</p>
+        </footer>
       </div>
     );
   }
