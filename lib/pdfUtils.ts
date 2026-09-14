@@ -1,7 +1,7 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 }
 
 export async function extractTextFromPdf(file: File): Promise<string> {
@@ -47,15 +47,47 @@ export function findStoryStartIndex(text: string): number {
 }
 
 export function splitIntoSentences(text: string): string[] {
-  const segmenter = new Intl.Segmenter(undefined, { granularity: 'sentence' });
-  const segments = segmenter.segment(text);
-  
+  // 1. 최신 브라우저용 (Intl.Segmenter)
+  if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+    try {
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'sentence' });
+      const segments = segmenter.segment(text);
+      
+      const sentences = [];
+      // for...of 대신 이터레이터를 직접 풀어서 모바일(Safari) 호환성 문제 회피
+      const iterator = segments[Symbol.iterator]();
+      let step = iterator.next();
+      while (!step.done) {
+        const trimmed = step.value.segment.trim();
+        if (trimmed.length > 1) {
+          sentences.push(trimmed);
+        }
+        step = iterator.next();
+      }
+      
+      if (sentences.length > 0) return sentences;
+    } catch (e) {
+      console.warn("Intl.Segmenter failed", e);
+    }
+  }
+
+  // 2. 구형 브라우저 / Safari 에러 대비용 (정규식 기반 문장 분리)
+  const regex = /[^.!?]+[.!?]+(?:\s|$)/g;
   const sentences = [];
-  for (const { segment } of segments) {
-    const trimmed = segment.trim();
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const trimmed = match[0].trim();
     if (trimmed.length > 1) {
       sentences.push(trimmed);
     }
   }
-  return sentences;
+  // 마지막에 마침표 없이 끝난 문장 처리
+  const lastIndex = regex.lastIndex;
+  if (lastIndex < text.length) {
+    const remainder = text.slice(lastIndex).trim();
+    if (remainder.length > 1) {
+      sentences.push(remainder);
+    }
+  }
+  return sentences.length > 0 ? sentences : [text.trim()];
 }

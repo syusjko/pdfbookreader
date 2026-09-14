@@ -1,5 +1,4 @@
 "use client";
-import '../lib/polyfill';
 
 import { useState, useEffect, useRef } from 'react';
 import { extractTextFromPdf, findStoryStartIndex, splitIntoSentences } from '../lib/pdfUtils';
