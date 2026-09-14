@@ -310,15 +310,15 @@ export default function Player() {
 
   const breakdownList = Array.isArray(analysis?.breakdown) ? analysis.breakdown : [];
 
+  // 모바일 해석 패널 토글
+  const [showMobilePanel, setShowMobilePanel] = useState(false);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 relative overflow-hidden">
       
-      {/* 🚀 완전히 투명하고 심리스한 좌측 챕터 사이드바 */}
-      <div className="absolute left-0 top-0 bottom-28 w-72 z-50 group">
-        {/* 보이지 않는 호버 트리거 영역 */}
+      {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
+      <div className="hidden md:block absolute left-0 top-0 bottom-28 w-72 z-50 group">
         <div className="absolute inset-0 w-16 bg-transparent z-10" />
-        
-        {/* 챕터 목록 (마우스를 올리면 텍스트만 스르륵 나타남) */}
         <div className="absolute inset-0 p-8 pl-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto">
           <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-8 uppercase">Contents</h2>
           <div className="space-y-6">
@@ -346,18 +346,18 @@ export default function Player() {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         
         {/* 중앙 본문 영역 */}
-        <div className="flex-1 relative flex flex-col justify-center items-center p-8 bg-white shadow-sm m-4 rounded-2xl border">
+        <div className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-white shadow-sm m-2 md:m-4 rounded-xl md:rounded-2xl border min-h-0">
           <AnimatePresence mode="popLayout">
             {prevSentence && (
               <motion.div
                 key={`prev-${currentIndex}`}
                 initial={{ opacity: 1, y: 0 }}
-                animate={{ opacity: 0.15, y: -100, scale: 0.95 }}
+                animate={{ opacity: 0.15, y: -60, scale: 0.95 }}
                 exit={{ opacity: 0 }}
-                className="absolute text-gray-400 text-xl text-center max-w-3xl px-4"
+                className="absolute text-gray-400 text-sm md:text-xl text-center max-w-3xl px-4 hidden md:block"
                 style={{ top: '15%' }}
               >
                 {prevSentence}
@@ -370,9 +370,9 @@ export default function Player() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -40 }}
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
-              className="absolute flex flex-col items-center justify-center max-w-5xl w-full z-10 px-4"
+              className="absolute flex flex-col items-center justify-center max-w-5xl w-full z-10 px-3 md:px-4"
             >
-              <div className="text-slate-800 font-bold text-3xl md:text-5xl text-center leading-tight drop-shadow-sm w-full">
+              <div className="text-slate-800 font-bold text-xl sm:text-2xl md:text-3xl lg:text-5xl text-center leading-snug md:leading-tight drop-shadow-sm w-full">
                 {currentSentence}
               </div>
 
@@ -381,7 +381,7 @@ export default function Player() {
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-8 text-xl md:text-2xl text-slate-500 font-medium text-center tracking-wide"
+                  className="mt-4 md:mt-8 text-sm sm:text-base md:text-xl lg:text-2xl text-slate-500 font-medium text-center tracking-wide px-2"
                 >
                   {analysis.translation}
                 </motion.div>
@@ -392,8 +392,8 @@ export default function Player() {
               <motion.div
                 key={`next-${currentIndex}`}
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.1, y: 100, scale: 0.95 }}
-                className="absolute text-gray-300 text-xl text-center max-w-3xl px-4"
+                animate={{ opacity: 0.1, y: 60, scale: 0.95 }}
+                className="absolute text-gray-300 text-sm md:text-xl text-center max-w-3xl px-4 hidden md:block"
                 style={{ bottom: '15%' }}
               >
                 {nextSentence}
@@ -402,8 +402,8 @@ export default function Player() {
           </AnimatePresence>
         </div>
 
-        {/* 우측 패널: 직독직해 UI */}
-        <div className="w-96 bg-white border-l shadow-sm flex flex-col z-10">
+        {/* 우측 패널: 직독직해 — 데스크톱에서만 사이드바 */}
+        <div className="hidden md:flex w-96 bg-white border-l shadow-sm flex-col z-10">
           <div className="p-4 border-b bg-blue-50/50 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-blue-600" />
             <h3 className="font-semibold text-slate-800">AI 해석 & 직독직해</h3>
@@ -423,8 +423,6 @@ export default function Player() {
               </div>
             ) : analysis ? (
               <div className="space-y-6">
-                
-                {/* 컴팩트한 슬래시 표기법 직독직해 */}
                 <div>
                   <h4 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-3">Sentence Breakdown</h4>
                   {breakdownList.length > 0 ? (
@@ -453,32 +451,79 @@ export default function Player() {
                     <div className="text-sm text-gray-400 py-4">구문 분석 결과가 없습니다.</div>
                   )}
                 </div>
-
               </div>
             ) : null}
           </div>
         </div>
       </div>
 
+      {/* 🚀 모바일 해석 바텀시트 */}
+      <div className="md:hidden">
+        {showMobilePanel && (
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-200 rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)] max-h-[55vh] flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-blue-600" />
+                <h3 className="font-semibold text-sm text-slate-800">AI 해석 & 직독직해</h3>
+              </div>
+              <button onClick={() => setShowMobilePanel(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-2">×</button>
+            </div>
+            <div className="flex-1 p-4 overflow-y-auto">
+              {isAnalyzing ? (
+                <div className="animate-pulse flex flex-col gap-3">
+                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                </div>
+              ) : analysis ? (
+                <div>
+                  {breakdownList.length > 0 ? (
+                    <div className="leading-[2.2rem] text-sm break-words">
+                      {breakdownList.map((item, idx) => (
+                        <span key={idx} className="inline-block mr-1">
+                          <span className="text-slate-800 font-bold">{item.chunk}</span>
+                          <span className="text-blue-600 font-medium ml-1">({item.meaning})</span>
+                          <sup className="text-gray-400 ml-0.5 tracking-tighter">{item.role}</sup>
+                          {idx < breakdownList.length - 1 && (
+                            <span className="text-slate-300 mx-1 align-middle">/</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-400">분석 결과가 없습니다.</div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </motion.div>
+        )}
+      </div>
+
       {/* 하단 재생 바 */}
-      <div className="h-28 bg-white border-t flex flex-col justify-center px-8 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-20">
+      <div className="h-20 md:h-28 bg-white border-t flex flex-col justify-center px-4 md:px-8 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-20">
         
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <span className="text-xs font-mono text-gray-400 font-medium w-8 text-right">{currentIndex + 1}</span>
+        <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 md:mb-4">
+          <span className="text-[10px] md:text-xs font-mono text-gray-400 font-medium w-6 md:w-8 text-right">{currentIndex + 1}</span>
           
           <div className="relative flex-1 flex items-center h-4 group">
-            <div className="absolute w-full h-1.5 bg-gray-200 rounded-lg pointer-events-none" />
+            <div className="absolute w-full h-1 md:h-1.5 bg-gray-200 rounded-lg pointer-events-none" />
             
             <div 
-              className="absolute h-1.5 bg-blue-500 rounded-l-lg pointer-events-none transition-all duration-150"
+              className="absolute h-1 md:h-1.5 bg-blue-500 rounded-l-lg pointer-events-none transition-all duration-150"
               style={{ width: `${(currentIndex / Math.max(1, sentences.length - 1)) * 100}%` }} 
             />
             
             {chapters.map((chap) => (
               <div 
                 key={chap.index}
-                className="absolute w-1.5 h-3 bg-white border border-slate-300 rounded-sm hover:scale-150 hover:bg-blue-500 hover:border-blue-600 transition-all z-10 cursor-pointer shadow-sm group-hover:h-4 group-hover:w-2"
-                style={{ left: `calc(${(chap.index / Math.max(1, sentences.length - 1)) * 100}% - 3px)` }}
+                className="absolute w-1 md:w-1.5 h-2 md:h-3 bg-white border border-slate-300 rounded-sm hover:scale-150 hover:bg-blue-500 hover:border-blue-600 transition-all z-10 cursor-pointer shadow-sm"
+                style={{ left: `calc(${(chap.index / Math.max(1, sentences.length - 1)) * 100}% - 2px)` }}
                 title={chap.title}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -497,29 +542,37 @@ export default function Player() {
             />
           </div>
 
-          <span className="text-xs font-mono text-gray-400 font-medium w-8">{sentences.length}</span>
+          <span className="text-[10px] md:text-xs font-mono text-gray-400 font-medium w-6 md:w-8">{sentences.length}</span>
         </div>
         
-        <div className="flex justify-center items-center gap-6">
+        <div className="flex justify-center items-center gap-4 md:gap-6">
           <button 
             onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
-            className="p-3 rounded-full hover:bg-gray-100 text-slate-600 transition"
+            className="p-2 md:p-3 rounded-full hover:bg-gray-100 text-slate-600 transition"
           >
-            <SkipBack className="w-5 h-5" />
+            <SkipBack className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           
+          {/* 모바일: 해석 패널 토글 버튼 */}
+          <button 
+            onClick={() => setShowMobilePanel(!showMobilePanel)}
+            className="md:hidden p-2 rounded-full hover:bg-blue-50 text-blue-500 transition"
+          >
+            <BookOpen className="w-4 h-4" />
+          </button>
+
           <button 
             onClick={togglePlay}
-            className="p-4 bg-blue-600 rounded-full hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-white transform hover:scale-105 active:scale-95"
+            className="p-3 md:p-4 bg-blue-600 rounded-full hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-white transform hover:scale-105 active:scale-95"
           >
-            {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
+            {isPlaying ? <Pause className="w-5 h-5 md:w-7 md:h-7" /> : <Play className="w-5 h-5 md:w-7 md:h-7 ml-0.5" />}
           </button>
           
           <button 
             onClick={() => setCurrentIndex(Math.min(sentences.length - 1, currentIndex + 1))}
-            className="p-3 rounded-full hover:bg-gray-100 text-slate-600 transition"
+            className="p-2 md:p-3 rounded-full hover:bg-gray-100 text-slate-600 transition"
           >
-            <SkipForward className="w-5 h-5" />
+            <SkipForward className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       </div>
