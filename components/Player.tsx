@@ -195,9 +195,10 @@ export default function Player() {
 
   useEffect(() => {
     if (sentences.length === 0) return;
-    fetchAudioForIndex(currentIndex);
-    fetchAudioForIndex(currentIndex + 1);
-    fetchAudioForIndex(currentIndex + 2);
+    // Increase prefetch buffer to 5 sentences ahead for heavy models like Bark
+    for (let i = 0; i <= 5; i++) {
+      fetchAudioForIndex(currentIndex + i);
+    }
   }, [currentIndex, sentences, bookLang, readingSpeed]);
 
   useEffect(() => {
