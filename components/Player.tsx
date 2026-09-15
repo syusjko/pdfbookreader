@@ -25,6 +25,7 @@ export default function Player() {
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [readingSpeed, setReadingSpeed] = useState(0.65); // Default slow storytelling pace
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -182,7 +183,7 @@ export default function Player() {
       utterance.lang = voice.lang;
     }
     
-    utterance.rate = 0.75; 
+    utterance.rate = readingSpeed; 
     
     utterance.onend = () => {
       if (isPlaying) {
@@ -202,7 +203,7 @@ export default function Player() {
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [currentIndex, isPlaying, sentences, availableVoices, bookLang]);
+  }, [currentIndex, isPlaying, sentences, availableVoices, bookLang, readingSpeed]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentIndex(parseInt(e.target.value));
@@ -220,7 +221,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v5</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v6</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -578,6 +579,19 @@ export default function Player() {
             className="p-2 text-gray-400 hover:text-black transition-colors"
           >
             <SkipForward className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => {
+              setReadingSpeed(prev => {
+                if (prev === 0.65) return 0.8;
+                if (prev === 0.8) return 1.0;
+                return 0.65;
+              });
+            }}
+            className="w-10 text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors"
+          >
+            {readingSpeed}x
           </button>
         </div>
       </div>
