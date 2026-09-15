@@ -43,6 +43,106 @@ export default function Player() {
   const analysisCache = useRef<Record<number, any>>({});
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+  const lastLoadedText = useRef<string | null>(null);
+  const playAbortRef = useRef<AbortController | null>(null);
+
+  // Cleanup blob URL when no longer needed
+  const revokeBlobUrl = () => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+  };
+
+  const getVoiceConfig = (lang: string) => {
+    const l = lang.split('-')[0];
+    if (l === 'ko') return { voice: 'ko-KR-SunHiNeural', lang: 'ko-KR' };
+    if (l === 'fr') return { voice: 'fr-FR-DeniseNeural', lang: 'fr-FR' };
+    if (l === 'ja') return { voice: 'ja-JP-NanamiNeural', lang: 'ja-JP' };
+    if (l === 'zh') return { voice: 'zh-CN-XiaoxiaoNeural', lang: 'zh-CN' };
+    return { voice: 'en-US-JennyNeural', lang: 'en-US' };
+  };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!isPlaying) {
+      audio.pause();
+      playAbortRef.current?.abort();
+      return;
+    }
+
+    if (sentences.length === 0 || currentIndex >= sentences.length) {
+      setIsPlaying(false);
+      return;
+    }
+
+    const currentText = sentences[currentIndex];
+
+    // Same sentence, already loaded — just resume
+    if (lastLoadedText.current === currentText && blobUrlRef.current) {
+      audio.playbackRate = readingSpeed;
+      audio.play().catch(e => {
+        console.error('Resume error:', e);
+        setIsPlaying(false);
+      });
+      return;
+    }
+
+    // New sentence — fetch audio then play
+    const abortCtrl = new AbortController();
+    playAbortRef.current = abortCtrl;
+
+    const voiceConfig = getVoiceConfig(bookLang);
+    const apiUrl = `/api/tts?text=${encodeURIComponent(currentText)}&voice=${encodeURIComponent(voiceConfig.voice)}&lang=${encodeURIComponent(voiceConfig.lang)}`;
+
+    (async () => {
+      try {
+        const res = await fetch(apiUrl, { signal: abortCtrl.signal });
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({ error: res.status }));
+          console.error('TTS API error:', errJson);
+          setIsPlaying(false);
+          return;
+        }
+        const blob = await res.blob();
+        if (abortCtrl.signal.aborted) return;
+
+        revokeBlobUrl();
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+        lastLoadedText.current = currentText;
+
+        audio.src = url;
+        audio.playbackRate = readingSpeed;
+        await audio.play();
+      } catch (e: any) {
+        if (e.name === 'AbortError') return;
+        console.error('TTS play error:', e);
+        setIsPlaying(false);
+      }
+    })();
+
+    return () => {
+      abortCtrl.abort();
+    };
+  }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    lastLoadedText.current = null;
+    revokeBlobUrl();
+    setCurrentIndex(parseInt(e.target.value));
+  };
+
+  const togglePlay = () => {
+    if (!isPlaying && audioRef.current) {
+      // iOS Safari: must call play() synchronously inside a user gesture
+      audioRef.current.play().catch(() => {});
+    }
+    setIsPlaying(prev => !prev);
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -138,88 +238,6 @@ export default function Player() {
     fetchChunk(currentChunkIdx + 1);
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
-  const lastLoadedText = useRef<string | null>(null);
-  const isLoadingAudio = useRef(false);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!isPlaying) {
-      audio.pause();
-      return;
-    }
-
-    if (sentences.length === 0 || currentIndex >= sentences.length) {
-      setIsPlaying(false);
-      return;
-    }
-
-    const currentText = sentences[currentIndex];
-    const lang = bookLang.split('-')[0];
-    
-    let voiceConfig = { voice: 'en-US-JennyNeural', lang: 'en-US' };
-    if (lang === 'ko') voiceConfig = { voice: 'ko-KR-SunHiNeural', lang: 'ko-KR' };
-    else if (lang === 'fr') voiceConfig = { voice: 'fr-FR-DeniseNeural', lang: 'fr-FR' };
-    else if (lang === 'ja') voiceConfig = { voice: 'ja-JP-NanamiNeural', lang: 'ja-JP' };
-    else if (lang === 'zh') voiceConfig = { voice: 'zh-CN-XiaoxiaoNeural', lang: 'zh-CN' };
-
-    const srcUrl = `/api/tts?text=${encodeURIComponent(currentText)}&voice=${encodeURIComponent(voiceConfig.voice)}&lang=${encodeURIComponent(voiceConfig.lang)}`;
-    
-    audio.playbackRate = readingSpeed;
-
-    if (lastLoadedText.current !== currentText) {
-      // New sentence — load then play
-      lastLoadedText.current = currentText;
-      isLoadingAudio.current = true;
-      audio.src = srcUrl;
-      audio.load();
-
-      const onReady = () => {
-        if (!isLoadingAudio.current) return;
-        isLoadingAudio.current = false;
-        audio.playbackRate = readingSpeed;
-        audio.play().catch(e => {
-          console.error("Play error:", e);
-          setIsPlaying(false);
-        });
-      };
-
-      const onError = () => {
-        isLoadingAudio.current = false;
-        console.error("Audio load error for:", srcUrl);
-        setIsPlaying(false);
-      };
-
-      audio.addEventListener('canplaythrough', onReady, { once: true });
-      audio.addEventListener('error', onError, { once: true });
-    } else {
-      // Same sentence (e.g. unpaused) — just resume
-      audio.play().catch(e => {
-        console.error("Resume error:", e);
-        setIsPlaying(false);
-      });
-    }
-  }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    lastLoadedText.current = null; // force reload on manual seek
-    setCurrentIndex(parseInt(e.target.value));
-  };
-
-  const togglePlay = () => {
-    if (!isPlaying && audioRef.current) {
-      // iOS Safari requires play() to be called from a user gesture.
-      // Touching the button IS the gesture, so calling play() here (even on an
-      // unloaded element) counts as a gesture unlock. We immediately pause so
-      // it doesn't matter that src isn't set yet.
-      const unlockPromise = audioRef.current.play();
-      if (unlockPromise !== undefined) {
-        unlockPromise.catch(() => {}); // expected to fail if src not set
-      }
-    }
-    setIsPlaying(prev => !prev);
-  };
 
   if (sentences.length === 0) {
     return (
@@ -323,6 +341,18 @@ export default function Player() {
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-black relative overflow-hidden">
       
+      <audio
+        ref={audioRef}
+        className="hidden"
+        onEnded={() => {
+          if (isPlaying) setCurrentIndex(prev => prev + 1);
+        }}
+        onError={(e) => {
+          console.error('Audio element error:', e);
+          setIsPlaying(false);
+        }}
+      />
+
       {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
       <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group">
         <div className="absolute inset-0 w-12 bg-transparent z-10" />
