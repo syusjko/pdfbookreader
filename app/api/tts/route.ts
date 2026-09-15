@@ -15,8 +15,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    let voice = 'af_heart'; // Default English
-    if (lang.startsWith('fr')) voice = 'ff_siwis';
+    // hexgrad/Kokoro-TTS official space currently only supports English voices.
+    // If we pass an unsupported voice, it throws a 500 error.
+    let voice = 'af_heart'; 
+    if (lang.startsWith('en-GB')) voice = 'bf_emma';
     
     const speed = parseFloat(speedParam) || 1.0;
 
@@ -28,7 +30,6 @@ export async function GET(req: Request) {
       throw new Error('No audio URL returned from Kokoro TTS');
     }
 
-    // Fetch the generated audio file from the HF Space URL
     const audioRes = await fetch(data[0].url);
     if (!audioRes.ok) {
       throw new Error(`Failed to fetch audio from HF Space: ${audioRes.status}`);
