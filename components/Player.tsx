@@ -42,17 +42,7 @@ export default function Player() {
   const [cacheTrigger, setCacheTrigger] = useState(0);
   const analysisCache = useRef<Record<number, any>>({});
 
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      setAvailableVoices(voices);
-    };
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }, []);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,22 +87,7 @@ export default function Player() {
     setIsLoading(false);
   };
 
-  const getBestVoice = () => {
-    const langVoices = availableVoices.filter(v => v.lang.startsWith(bookLang.split('-')[0]));
-    
-    if (selectedVoice && selectedVoice.lang.startsWith(bookLang.split('-')[0])) {
-      return selectedVoice;
-    }
 
-    const premiumVoice = langVoices.find(v => 
-      v.name.includes('Natural') || 
-      v.name.includes('Neural') || 
-      v.name.includes('Premium') || 
-      v.name.includes('Google')
-    );
-
-    return premiumVoice || langVoices[0] || availableVoices[0];
-  };
 
   const fetchChunk = (chunkIdx: number) => {
     if (!apiKey || chunkIdx * CHUNK_SIZE >= sentences.length) return;
@@ -164,8 +139,14 @@ export default function Player() {
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
   useEffect(() => {
+    let isActive = true;
+
     if (!isPlaying) {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
       return;
     }
 
@@ -175,35 +156,60 @@ export default function Player() {
     }
 
     const currentText = sentences[currentIndex];
-    const utterance = new SpeechSynthesisUtterance(currentText);
+    const lang = bookLang.split('-')[0];
     
-    const voice = getBestVoice();
-    if (voice) {
-      utterance.voice = voice;
-      utterance.lang = voice.lang;
-    }
-    
-    utterance.rate = readingSpeed; 
-    
-    utterance.onend = () => {
-      if (isPlaying) {
-        setCurrentIndex((prev) => prev + 1);
-      }
-    };
+    let voiceConfig = { voice: 'en-US-JennyNeural', lang: 'en-US' };
+    if (lang === 'ko') voiceConfig = { voice: 'ko-KR-SunHiNeural', lang: 'ko-KR' };
+    else if (lang === 'fr') voiceConfig = { voice: 'fr-FR-DeniseNeural', lang: 'fr-FR' };
+    else if (lang === 'ja') voiceConfig = { voice: 'ja-JP-NanamiNeural', lang: 'ja-JP' };
+    else if (lang === 'zh') voiceConfig = { voice: 'zh-CN-XiaoxiaoNeural', lang: 'zh-CN' };
 
-    utterance.onerror = (e) => {
-      if (e.error === 'interrupted') return;
-      console.error('TTS Error', e);
+    fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: currentText, ...voiceConfig })
+    })
+    .then(res => res.blob())
+    .then(blob => {
+      if (!isActive) return;
+      
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.playbackRate = readingSpeed;
+      
+      audio.onended = () => {
+        if (isActive && isPlaying) {
+          setCurrentIndex(prev => prev + 1);
+        }
+        URL.revokeObjectURL(url);
+      };
+      
+      audio.onerror = (e) => {
+        console.error("TTS Audio Error:", e);
+        setIsPlaying(false);
+      };
+
+      audio.play().catch(e => {
+        console.error("Audio play error:", e);
+        setIsPlaying(false);
+      });
+      
+      audioRef.current = audio;
+    })
+    .catch(err => {
+      console.error("TTS Fetch Error:", err);
       setIsPlaying(false);
-    };
-
-    window.speechSynthesis.cancel(); 
-    window.speechSynthesis.speak(utterance);
+    });
 
     return () => {
-      window.speechSynthesis.cancel();
+      isActive = false;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
     };
-  }, [currentIndex, isPlaying, sentences, availableVoices, bookLang, readingSpeed]);
+  }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentIndex(parseInt(e.target.value));
@@ -221,7 +227,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v7</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v8</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
