@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<body>
+<button onclick="play()">Play Brown Noise</button>
+<script>
+let ctx;
+function play() {
+  if(!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const bufferSize = 2 * ctx.sampleRate;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const output = buffer.getChannelData(0);
+  let lastOut = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    let white = Math.random() * 2 - 1;
+    output[i] = (lastOut + (0.02 * white)) / 1.02;
+    lastOut = output[i];
+    output[i] *= 3.5; 
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  
+  // Add lowpass filter for "rain" effect
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 400;
+  
+  source.connect(filter);
+  filter.connect(ctx.destination);
+  source.start(0);
+}
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { extractTextFromPdf, findStoryStartIndex, splitIntoSentences } from '../lib/pdfUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Loader2 } from 'lucide-react';
+import { useWhiteNoise, NoiseType } from './useWhiteNoise';
 
 export default function Player() {
   const [sentences, setSentences] = useState<string[]>([]);
@@ -30,6 +31,8 @@ export default function Player() {
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [readingSpeed, setReadingSpeed] = useState(1.0); 
+
+  const { noiseType, setNoiseType, volume: noiseVolume, setVolume: setNoiseVolume } = useWhiteNoise();
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -702,6 +705,31 @@ export default function Player() {
             <option value="ko-KR">KO</option>
             <option value="ja-JP">JA</option>
           </select>
+
+          <div className="flex items-center gap-1 border-l border-gray-200 pl-2 ml-1">
+            <select 
+              value={noiseType}
+              onChange={(e) => setNoiseType(e.target.value as NoiseType)}
+              className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer appearance-none"
+            >
+              <option value="none">음소거</option>
+              <option value="brown">비행기</option>
+              <option value="pink">바람</option>
+              <option value="rain">빗소리</option>
+            </select>
+            
+            {noiseType !== 'none' && (
+              <input 
+                type="range" 
+                min="0.01" 
+                max="0.5" 
+                step="0.01" 
+                value={noiseVolume} 
+                onChange={(e) => setNoiseVolume(parseFloat(e.target.value))}
+                className="w-12 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
