@@ -1,25 +1,12 @@
 import { NextResponse } from 'next/server';
+import { EdgeTTS } from 'node-edge-tts';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import os from 'os';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
-
-function chunkString(str: string, maxLen: number): string[] {
-  const chunks = [];
-  let i = 0;
-  while (i < str.length) {
-    let chunk = str.substring(i, i + maxLen);
-    // try to break at space
-    if (i + maxLen < str.length) {
-      let lastSpace = chunk.lastIndexOf(' ');
-      if (lastSpace > maxLen * 0.5) {
-        chunk = chunk.substring(0, lastSpace);
-      }
-    }
-    chunks.push(chunk);
-    i += chunk.length;
-  }
-  return chunks;
-}
 
 export async function GET(req: Request) {
   try {
@@ -31,41 +18,39 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    const tl = lang.split('-')[0]; // en, fr, ko, ja
-    
-    // Google TTS has a strict 200 character limit per request. 
-    // We chunk the text safely into <190 char segments.
-    const chunks = chunkString(text, 180);
-    
-    const buffers: Buffer[] = [];
-    
-    for (const chunk of chunks) {
-      const encodedText = encodeURIComponent(chunk.trim());
-      if (!encodedText) continue;
-      
-      const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${tl}&client=tw-ob`;
-
-      const audioRes = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' 
-        }
-      });
-
-      if (!audioRes.ok) {
-        throw new Error(`GTTS failed: ${audioRes.status}`);
-      }
-      
-      const arrayBuf = await audioRes.arrayBuffer();
-      buffers.push(Buffer.from(arrayBuf));
+    // Determine high-quality Azure Neural voice based on language
+    let voice = 'en-US-AriaNeural'; // Default English
+    if (lang.startsWith('en')) {
+      voice = 'en-US-AriaNeural';
+    } else if (lang.startsWith('fr')) {
+      voice = 'fr-FR-DeniseNeural';
+    } else if (lang.startsWith('ko')) {
+      voice = 'ko-KR-SunHiNeural';
+    } else if (lang.startsWith('ja')) {
+      voice = 'ja-JP-NanamiNeural';
+    } else if (lang.startsWith('es')) {
+      voice = 'es-ES-ElviraNeural';
     }
-    
-    const finalBuffer = Buffer.concat(buffers);
 
-    return new Response(finalBuffer, {
+    const tts = new EdgeTTS({
+      voice: voice,
+      lang: lang,
+      outputFormat: 'audio-24khz-48kbitrate-mono-mp3'
+    });
+
+    const tmpDir = os.tmpdir();
+    const tmpFile = path.join(tmpDir, `${crypto.randomUUID()}.mp3`);
+
+    await tts.ttsPromise(text, tmpFile);
+
+    const buffer = fs.readFileSync(tmpFile);
+    fs.unlinkSync(tmpFile); // Clean up immediately
+
+    return new Response(buffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=31536000, immutable',
-        'Content-Length': String(finalBuffer.byteLength)
+        'Content-Length': String(buffer.byteLength)
       }
     });
 
