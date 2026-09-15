@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
-import 'pdfjs-dist/build/pdf.worker.mjs';
 import { extractTextFromPdf, findStoryStartIndex, splitIntoSentences } from '../lib/pdfUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Loader2, Headphones, Volume2, VolumeX } from 'lucide-react';
