@@ -153,7 +153,7 @@ export default function Player() {
   // --- AUDIO PREFETCH LOGIC ---
   const fetchAudioForIndex = (index: number): Promise<string | null> => {
     if (index >= sentences.length) return Promise.resolve(null);
-    if (audioCache.current[index]) return audioCache.current[index];
+    if (index in audioCache.current) return audioCache.current[index];
     if (activeFetches.current.has(index)) return Promise.resolve(null);
 
     activeFetches.current.add(index);
