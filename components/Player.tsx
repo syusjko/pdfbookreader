@@ -3,14 +3,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { extractTextFromPdf, findStoryStartIndex, splitIntoSentences } from '../lib/pdfUtils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Loader2 } from 'lucide-react';
 
 export default function Player() {
   const [sentences, setSentences] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  // UI States
   const [isLoading, setIsLoading] = useState(false);
-  const [isAudioLoading, setIsAudioLoading] = useState(false); // To show loading state for audio
+  const [loadingText, setLoadingText] = useState('');
+  const [isAudioLoading, setIsAudioLoading] = useState(false); 
+  const [prefetchStatus, setPrefetchStatus] = useState<string>('');
   
   const [apiKey, setApiKey] = useState('');
   
@@ -44,7 +48,6 @@ export default function Player() {
   const [cacheTrigger, setCacheTrigger] = useState(0);
   const analysisCache = useRef<Record<number, any>>({});
   
-  // Audio caching refs
   const audioCache = useRef<Record<number, Promise<string | null>>>({});
   const activeFetches = useRef<Set<number>>(new Set());
 
@@ -56,8 +59,17 @@ export default function Player() {
     if (!file) return;
 
     setIsLoading(true);
+    setLoadingText('Extracting PDF text...');
+    
     try {
+      // Simulate slight delay for UI render
+      await new Promise(r => setTimeout(r, 100));
+      
       const text = await extractTextFromPdf(file);
+      
+      setLoadingText('Analyzing chapters...');
+      await new Promise(r => setTimeout(r, 50));
+      
       const startIndex = findStoryStartIndex(text);
       const storyText = text.slice(startIndex);
       const split = splitIntoSentences(storyText);
@@ -86,7 +98,6 @@ export default function Player() {
       setCurrentIndex(0);
       analysisCache.current = {}; 
       
-      // Clear audio cache on new file
       Object.values(audioCache.current).forEach(p => {
         p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
       });
@@ -150,13 +161,13 @@ export default function Player() {
     fetchChunk(currentChunkIdx + 1);
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
-  // --- AUDIO PREFETCH LOGIC ---
   const fetchAudioForIndex = (index: number): Promise<string | null> => {
     if (index >= sentences.length) return Promise.resolve(null);
     if (index in audioCache.current) return audioCache.current[index];
     if (activeFetches.current.has(index)) return Promise.resolve(null);
 
     activeFetches.current.add(index);
+    setPrefetchStatus('Buffering AI Voice...');
     const text = sentences[index];
     const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
 
@@ -167,12 +178,14 @@ export default function Player() {
       })
       .then(blob => {
         activeFetches.current.delete(index);
+        if (activeFetches.current.size === 0) setPrefetchStatus('');
         return URL.createObjectURL(blob);
       })
       .catch(err => {
         console.error(`Prefetch error for index ${index}:`, err);
         activeFetches.current.delete(index);
-        delete audioCache.current[index]; // Allow retry
+        delete audioCache.current[index]; 
+        if (activeFetches.current.size === 0) setPrefetchStatus('');
         return null;
       });
 
@@ -180,16 +193,13 @@ export default function Player() {
     return promise;
   };
 
-  // Trigger prefetching for next 2 sentences whenever index changes
   useEffect(() => {
     if (sentences.length === 0) return;
-    // Always ensure current + next 2 are fetched/fetching
     fetchAudioForIndex(currentIndex);
     fetchAudioForIndex(currentIndex + 1);
     fetchAudioForIndex(currentIndex + 2);
   }, [currentIndex, sentences, bookLang, readingSpeed]);
 
-  // --- AUDIO PLAYBACK LOGIC ---
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || sentences.length === 0) return;
@@ -211,7 +221,6 @@ export default function Player() {
 
     (async () => {
       try {
-        // Wait for the cached promise (or fetch it if somehow missing)
         const blobUrl = await fetchAudioForIndex(currentIndex);
         if (abortCtrl.signal.aborted) return;
 
@@ -242,7 +251,6 @@ export default function Player() {
 
   const togglePlay = () => {
     if (!isPlaying && audioRef.current) {
-      // iOS Safari: unlock audio context
       audioRef.current.play().catch(() => {});
     }
     setIsPlaying(prev => !prev);
@@ -250,14 +258,21 @@ export default function Player() {
 
   if (sentences.length === 0) {
     return (
-      <div className="min-h-screen bg-white flex flex-col font-sans text-black">
+      <div className="min-h-screen bg-white flex flex-col font-sans text-black relative">
+        {isLoading && (
+          <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center">
+             <Loader2 className="w-8 h-8 animate-spin mb-4 text-black" />
+             <p className="font-mono text-sm uppercase tracking-widest text-black">{loadingText}</p>
+             <p className="text-[10px] text-gray-400 mt-2">Depending on the size, this may take a moment.</p>
+          </div>
+        )}
         
         <nav className="flex items-center justify-between px-8 py-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v16 (Prefetch)</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v17</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -308,18 +323,11 @@ export default function Player() {
                 className="flex-1 bg-transparent text-sm font-mono text-black placeholder:text-gray-400 outline-none"
               />
             </div>
-
-            {isLoading && (
-              <div className="flex items-center justify-center gap-3 py-6">
-                <div className="w-4 h-4 border border-black border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-mono text-black uppercase tracking-widest">Processing...</span>
-              </div>
-            )}
           </div>
         </main>
 
         <footer className="text-center py-6 border-t border-gray-200">
-          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Powered by Kokoro-82M</p>
+          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Powered by AI Voices</p>
         </footer>
       </div>
     );
@@ -389,6 +397,13 @@ export default function Player() {
             if (isPlaying) setShowControls(!showControls);
           }}
         >
+          {prefetchStatus && (
+            <div className="absolute top-4 right-4 z-50 flex items-center gap-2 px-3 py-1 bg-white/80 border border-gray-200 rounded-full shadow-sm pointer-events-none">
+              <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
+              <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">{prefetchStatus}</span>
+            </div>
+          )}
+
           <AnimatePresence mode="popLayout">
             {prevSentence && (
               <motion.div

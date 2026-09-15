@@ -15,22 +15,37 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    // hexgrad/Kokoro-TTS official space currently only supports English voices.
-    // If we pass an unsupported voice, it throws a 500 error.
-    let voice = 'af_heart'; 
-    if (lang.startsWith('en-GB')) voice = 'bf_emma';
-    
-    const speed = parseFloat(speedParam) || 1.0;
+    let audioUrl = '';
 
-    const app = await client('hexgrad/Kokoro-TTS');
-    const res = await app.predict(4, [text, voice, speed, true]);
-    
-    const data = res.data as any[];
-    if (!data || !data[0] || !data[0].url) {
-      throw new Error('No audio URL returned from Kokoro TTS');
+    // Route based on language
+    if (lang.startsWith('ko') || lang.startsWith('fr')) {
+      // Use Suno Bark for Korean and French (High quality multilingual)
+      const barkVoice = lang.startsWith('ko') ? 'Speaker 0 (ko)' : 'Speaker 0 (fr)';
+      const app = await client('suno/bark');
+      
+      const res = await app.predict('gen_tts', [text, barkVoice]);
+      const data = res.data as any[];
+      if (!data || !data[0] || !data[0].url) {
+        throw new Error('No audio URL returned from Bark TTS');
+      }
+      audioUrl = data[0].url;
+      
+    } else {
+      // Use Kokoro-82M for English (Extremely fast and high quality)
+      const voice = lang.startsWith('en-GB') ? 'bf_emma' : 'af_heart';
+      const speed = parseFloat(speedParam) || 1.0;
+
+      const app = await client('hexgrad/Kokoro-TTS');
+      const res = await app.predict(4, [text, voice, speed, true]);
+      
+      const data = res.data as any[];
+      if (!data || !data[0] || !data[0].url) {
+        throw new Error('No audio URL returned from Kokoro TTS');
+      }
+      audioUrl = data[0].url;
     }
 
-    const audioRes = await fetch(data[0].url);
+    const audioRes = await fetch(audioUrl);
     if (!audioRes.ok) {
       throw new Error(`Failed to fetch audio from HF Space: ${audioRes.status}`);
     }
@@ -40,13 +55,13 @@ export async function GET(req: Request) {
     return new Response(buffer, {
       headers: {
         'Content-Type': 'audio/wav',
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Cache-Control': 'public, max-age=31536000, immutable',
         'Content-Length': String(buffer.byteLength)
       }
     });
 
   } catch (err: any) {
-    console.error('Kokoro TTS error:', err?.message || String(err));
+    console.error('TTS error:', err?.message || String(err));
     return NextResponse.json({ error: err?.message || String(err) }, { status: 500 });
   }
 }
