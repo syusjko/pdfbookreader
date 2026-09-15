@@ -384,7 +384,12 @@ export default function Player() {
         ref={audioRef}
         className="hidden"
         onEnded={() => {
-          if (isPlaying) setCurrentIndex(prev => prev + 1);
+          if (isPlaying) {
+            // 자연스러운 문장 간 숨쉬기(띄어읽기) 간격 400ms 추가
+            setTimeout(() => {
+              setCurrentIndex(prev => prev + 1);
+            }, 400);
+          }
         }}
         onError={(e) => {
           console.error('Audio element error:', e);
