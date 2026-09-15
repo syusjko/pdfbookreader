@@ -139,12 +139,14 @@ export default function Player() {
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
   const lastLoadedText = useRef<string | null>(null);
+  const isLoadingAudio = useRef(false);
 
   useEffect(() => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    if (!audio) return;
 
     if (!isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
       return;
     }
 
@@ -164,34 +166,59 @@ export default function Player() {
 
     const srcUrl = `/api/tts?text=${encodeURIComponent(currentText)}&voice=${encodeURIComponent(voiceConfig.voice)}&lang=${encodeURIComponent(voiceConfig.lang)}`;
     
-    audioRef.current.playbackRate = readingSpeed;
+    audio.playbackRate = readingSpeed;
 
-    // Check if the source is actually changing by comparing original text
     if (lastLoadedText.current !== currentText) {
-      audioRef.current.src = srcUrl;
-      audioRef.current.load();
+      // New sentence — load then play
       lastLoadedText.current = currentText;
-    }
-    
-    const playPromise = audioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(e => {
-        console.error("Autoplay prevented:", e);
+      isLoadingAudio.current = true;
+      audio.src = srcUrl;
+      audio.load();
+
+      const onReady = () => {
+        if (!isLoadingAudio.current) return;
+        isLoadingAudio.current = false;
+        audio.playbackRate = readingSpeed;
+        audio.play().catch(e => {
+          console.error("Play error:", e);
+          setIsPlaying(false);
+        });
+      };
+
+      const onError = () => {
+        isLoadingAudio.current = false;
+        console.error("Audio load error for:", srcUrl);
+        setIsPlaying(false);
+      };
+
+      audio.addEventListener('canplaythrough', onReady, { once: true });
+      audio.addEventListener('error', onError, { once: true });
+    } else {
+      // Same sentence (e.g. unpaused) — just resume
+      audio.play().catch(e => {
+        console.error("Resume error:", e);
         setIsPlaying(false);
       });
     }
   }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    lastLoadedText.current = null; // force reload on manual seek
     setCurrentIndex(parseInt(e.target.value));
   };
 
   const togglePlay = () => {
     if (!isPlaying && audioRef.current) {
-      // Unlock audio context on iOS Safari
-      audioRef.current.play().catch(() => {});
+      // iOS Safari requires play() to be called from a user gesture.
+      // Touching the button IS the gesture, so calling play() here (even on an
+      // unloaded element) counts as a gesture unlock. We immediately pause so
+      // it doesn't matter that src isn't set yet.
+      const unlockPromise = audioRef.current.play();
+      if (unlockPromise !== undefined) {
+        unlockPromise.catch(() => {}); // expected to fail if src not set
+      }
     }
-    setIsPlaying(!isPlaying);
+    setIsPlaying(prev => !prev);
   };
 
   if (sentences.length === 0) {
@@ -204,7 +231,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v9</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v10</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
