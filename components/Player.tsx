@@ -53,6 +53,8 @@ export default function Player() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playAbortRef = useRef<AbortController | null>(null);
 
+  const sessionToken = useRef(Date.now()).current;
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -78,11 +80,10 @@ export default function Player() {
       const koCount = (sampleText.match(/[가-힣]/g) || []).length;
       const jaCount = (sampleText.match(/[ぁ-んァ-ン一-龥]/g) || []).length;
       
-      if (jaCount > 20) setBookLang('ja-JP');
-      else if (koCount > 20) setBookLang('ko-KR');
-      // 프랑스어는 엑센트 문자가 전체 문자의 최소 1% 이상일 때만 감지 (영어책에 섞인 외래어 방지)
-      else if (frCount > sampleText.length * 0.01) setBookLang('fr-FR');
-      else setBookLang('en-US');
+      if (jaCount > 20) { setBookLang('ja-JP'); setReadingSpeed(0.85); }
+      else if (koCount > 20) { setBookLang('ko-KR'); setReadingSpeed(0.85); }
+      else if (frCount > sampleText.length * 0.01) { setBookLang('fr-FR'); setReadingSpeed(0.85); }
+      else { setBookLang('en-US'); setReadingSpeed(1.0); }
 
       const extractedChapters: {index: number, title: string}[] = [];
       const chRegex = /^(PREMIER|DEUXI[ÈE]ME|TROISI[ÈE]ME|QUATRI[ÈE]ME|CINQUI[ÈE]ME|SIXI[ÈE]ME|SEPTI[ÈE]ME|HUITI[ÈE]ME|NEUVI[ÈE]ME|DIXI[ÈE]ME)\s+CHAPITRE|^(CHAPITRE|CHAPTER)\s*(?:[IVX]+|\d+)|^제\s*\d+\s*장/i;
@@ -180,7 +181,7 @@ export default function Player() {
     setPrefetchStatus('Buffering AI Voice...');
     const text = sentences[index];
     
-    const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
+    const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}&_t=${sessionToken}`;
 
     const promise = fetch(apiUrl)
       .then(res => {
@@ -684,7 +685,9 @@ export default function Player() {
           <select 
             value={bookLang} 
             onChange={(e) => {
-               setBookLang(e.target.value);
+               const newLang = e.target.value;
+               setBookLang(newLang);
+               setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.85);
                // Clear audio cache to force re-fetch with new language
                Object.values(audioCache.current).forEach(p => {
                  p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
