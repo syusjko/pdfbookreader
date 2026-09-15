@@ -33,10 +33,10 @@ export async function GET(req: Request) {
     const tl = lang.split('-')[0]; // en, fr, ko, ja
     
     // Select high-quality TikTok Neural Voice
-    let voice = 'en_us_001'; // Default English Female
-    if (tl === 'fr') voice = 'fr_002'; // French Female
-    else if (tl === 'ko') voice = 'kr_003'; // Korean Female
-    else if (tl === 'ja') voice = 'jp_001'; // Japanese Female
+    let voice = 'en_male_narration'; // Professional Audiobook Narrator (English)
+    if (tl === 'fr') voice = 'fr_001'; // French Calm Male
+    else if (tl === 'ko') voice = 'kr_004'; // Korean Calm Male
+    else if (tl === 'ja') voice = 'jp_006'; // Japanese Calm Male
 
     const chunks = chunkString(text, 180);
     const buffers: Buffer[] = [];
