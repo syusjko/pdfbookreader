@@ -104,6 +104,11 @@ export default function Player() {
       activeFetches.current.clear();
       
       setCacheTrigger(0);
+      
+      if (apiKey.trim()) {
+        setShowMobilePanel(true);
+      }
+      
     } catch (err: any) {
       console.error(err);
       alert('PDF 파싱 중 오류가 발생했습니다: ' + (err?.message || String(err)));
