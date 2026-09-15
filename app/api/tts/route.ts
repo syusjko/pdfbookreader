@@ -36,7 +36,7 @@ export async function GET(req: Request) {
     
     // 1. Check if user deployed Cloudflare Worker Proxy
     // If you deployed the worker, set CF_WORKER_URL in your Vercel Environment Variables
-    const cfWorkerUrl = process.env.CF_WORKER_URL || "https://edge-tts-proxy.jsyusjko.workers.dev";
+    const cfWorkerUrl = process.env.CF_WORKER_URL;
 
     if (cfWorkerUrl) {
       let edgeVoice = 'en-US-AriaNeural';
