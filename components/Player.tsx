@@ -24,7 +24,19 @@ export default function Player() {
 
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (isPlaying && showControls) {
+      timeoutId = setTimeout(() => {
+        setShowControls(false);
+      }, 3500); // Hide after 3.5 seconds of playback
+    } else if (!isPlaying) {
+      setShowControls(true);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [isPlaying, showControls]);
   const CHUNK_SIZE = 10;
   const [cacheTrigger, setCacheTrigger] = useState(0);
   const analysisCache = useRef<Record<number, any>>({});
@@ -208,7 +220,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v4</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v5</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -298,7 +310,7 @@ export default function Player() {
   const breakdownList = Array.isArray(analysis?.breakdown) ? analysis.breakdown : [];
 
   return (
-    <div className="flex flex-col h-screen bg-white font-sans text-black relative overflow-hidden">
+    <div className="flex flex-col h-[100dvh] bg-white font-sans text-black relative overflow-hidden">
       
       {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
       <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group">
@@ -333,7 +345,12 @@ export default function Player() {
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden border-b border-gray-200">
         
         {/* 중앙 본문 영역 */}
-        <div className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0">
+        <div 
+          className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0 cursor-pointer md:cursor-default"
+          onClick={() => {
+            if (isPlaying) setShowControls(!showControls);
+          }}
+        >
           <AnimatePresence mode="popLayout">
             {prevSentence && (
               <motion.div
@@ -485,7 +502,16 @@ export default function Player() {
       </div>
 
       {/* 하단 재생 바 */}
-      <div className="h-24 md:h-24 bg-white flex flex-col justify-center px-4 md:px-10 z-20">
+      <div 
+        className={`
+          absolute md:relative bottom-0 inset-x-0
+          h-24 md:h-24 bg-white flex flex-col justify-center px-4 md:px-10 z-30
+          border-t border-gray-200
+          transition-transform duration-300 ease-in-out
+          ${showControls ? 'translate-y-0' : 'translate-y-full md:translate-y-0'}
+        `}
+        onClick={(e) => e.stopPropagation()}
+      >
         
         <div className="flex items-center justify-between gap-4 mb-3">
           <span className="text-[10px] font-mono text-gray-400 w-8 text-right">{currentIndex + 1}</span>
