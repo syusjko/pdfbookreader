@@ -62,7 +62,6 @@ export default function Player() {
     setLoadingText('Extracting PDF text...');
     
     try {
-      // Simulate slight delay for UI render
       await new Promise(r => setTimeout(r, 100));
       
       const text = await extractTextFromPdf(file);
@@ -169,6 +168,7 @@ export default function Player() {
     activeFetches.current.add(index);
     setPrefetchStatus('Buffering AI Voice...');
     const text = sentences[index];
+    // Bark ignores speed param, Kokoro uses it.
     const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
 
     const promise = fetch(apiUrl)
@@ -193,13 +193,39 @@ export default function Player() {
     return promise;
   };
 
+  // Continuous prefetch queue to prevent stalling while controlling parallel requests
   useEffect(() => {
     if (sentences.length === 0) return;
-    // Increase prefetch buffer to 5 sentences ahead for heavy models like Bark
-    for (let i = 0; i <= 5; i++) {
-      fetchAudioForIndex(currentIndex + i);
-    }
+    
+    let isCancelled = false;
+    
+    // We fetch up to 7 sentences ahead. 
+    // We fire them in sequence to ensure HF spaces don't time out the Vercel function.
+    const prefetchAhead = async () => {
+      for (let i = 0; i <= 7; i++) {
+        if (isCancelled) break;
+        const targetIdx = currentIndex + i;
+        if (targetIdx >= sentences.length) break;
+        
+        if (!(targetIdx in audioCache.current) && !activeFetches.current.has(targetIdx)) {
+          // Wait for one to finish generating before asking for the next.
+          // This creates a continuous background stream of generation!
+          await fetchAudioForIndex(targetIdx);
+        }
+      }
+    };
+    
+    prefetchAhead();
+    
+    return () => { isCancelled = true; };
   }, [currentIndex, sentences, bookLang, readingSpeed]);
+
+  // Client-side playback rate control (Fixes speed button for Bark which ignores speed API param)
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = readingSpeed;
+    }
+  }, [readingSpeed]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -230,6 +256,7 @@ export default function Player() {
         }
 
         audio.src = blobUrl;
+        audio.playbackRate = readingSpeed; // Enforce speed just before play
         setIsAudioLoading(false);
         await audio.play();
       } catch (e: any) {
@@ -273,7 +300,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v17</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v19 (Stable & Flex)</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -326,10 +353,6 @@ export default function Player() {
             </div>
           </div>
         </main>
-
-        <footer className="text-center py-6 border-t border-gray-200">
-          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Powered by AI Voices</p>
-        </footer>
       </div>
     );
   }
@@ -361,6 +384,7 @@ export default function Player() {
         }}
       />
 
+      {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
       <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group">
         <div className="absolute inset-0 w-12 bg-transparent z-10" />
         <div className="absolute inset-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto bg-white/95 border-r border-gray-200">
@@ -392,71 +416,111 @@ export default function Player() {
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden border-b border-gray-200">
         
-        <div 
-          className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0 cursor-pointer md:cursor-default"
-          onClick={() => {
-            if (isPlaying) setShowControls(!showControls);
-          }}
-        >
-          {prefetchStatus && (
-            <div className="absolute top-4 right-4 z-50 flex items-center gap-2 px-3 py-1 bg-white/80 border border-gray-200 rounded-full shadow-sm pointer-events-none">
-              <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
-              <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">{prefetchStatus}</span>
-            </div>
-          )}
-
-          <AnimatePresence mode="popLayout">
-            {prevSentence && (
-              <motion.div
-                key={`prev-${currentIndex}`}
-                initial={{ opacity: 1, y: 0 }}
-                animate={{ opacity: 0.1, y: -60, scale: 0.98 }}
-                exit={{ opacity: 0 }}
-                className="absolute text-black text-sm md:text-lg text-center max-w-3xl px-4 hidden md:block tracking-tight"
-                style={{ top: '15%' }}
-              >
-                {prevSentence}
-              </motion.div>
+        {/* 모바일 화면에서 번역창이 열리면 텍스트 영역을 위로 축소(Flex 비율 적용) */}
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${showMobilePanel ? 'h-[40vh] md:h-full' : 'h-full'}`}>
+          <div 
+            className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0 cursor-pointer md:cursor-default"
+            onClick={() => {
+              if (isPlaying) setShowControls(!showControls);
+            }}
+          >
+            {prefetchStatus && (
+              <div className="absolute top-4 right-4 z-50 flex items-center gap-2 px-3 py-1 bg-white/80 border border-gray-200 rounded-full shadow-sm pointer-events-none">
+                <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
+                <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">{prefetchStatus}</span>
+              </div>
             )}
 
-            <motion.div
-              key={`current-${currentIndex}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ type: "tween", duration: 0.3 }}
-              className="absolute flex flex-col items-center justify-center max-w-5xl w-full z-10 px-4 md:px-8"
-            >
-              <div className="text-black font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-center leading-snug md:leading-tight tracking-tighter w-full">
-                {currentSentence}
-              </div>
-
-              {analysis?.translation && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="mt-6 md:mt-10 text-xs sm:text-sm md:text-base text-gray-500 font-mono text-center tracking-wide px-2 uppercase"
+            <AnimatePresence mode="popLayout">
+              {prevSentence && (
+                <motion.div
+                  key={`prev-${currentIndex}`}
+                  initial={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 0.1, y: -60, scale: 0.98 }}
+                  exit={{ opacity: 0 }}
+                  className={`absolute text-black text-center max-w-3xl px-4 hidden md:block tracking-tight ${showMobilePanel ? 'text-xs' : 'text-sm md:text-lg'}`}
+                  style={{ top: '15%' }}
                 >
-                  {analysis.translation}
+                  {prevSentence}
                 </motion.div>
               )}
-            </motion.div>
 
-            {nextSentence && (
               <motion.div
-                key={`next-${currentIndex}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.05, y: 60, scale: 0.98 }}
-                className="absolute text-black text-sm md:text-lg text-center max-w-3xl px-4 hidden md:block tracking-tight"
-                style={{ bottom: '15%' }}
+                key={`current-${currentIndex}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ type: "tween", duration: 0.3 }}
+                className="absolute flex flex-col items-center justify-center max-w-5xl w-full z-10 px-4 md:px-8"
               >
-                {nextSentence}
+                <div className={`text-black font-bold text-center leading-snug md:leading-tight tracking-tighter w-full transition-all duration-300 ${showMobilePanel ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl'}`}>
+                  {currentSentence}
+                </div>
+
+                {analysis?.translation && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className={`mt-4 md:mt-10 text-gray-500 font-mono text-center tracking-wide px-2 uppercase transition-all duration-300 ${showMobilePanel ? 'text-[10px]' : 'text-xs sm:text-sm md:text-base'}`}
+                  >
+                    {analysis.translation}
+                  </motion.div>
+                )}
               </motion.div>
-            )}
-          </AnimatePresence>
+
+              {nextSentence && (
+                <motion.div
+                  key={`next-${currentIndex}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.05, y: 60, scale: 0.98 }}
+                  className={`absolute text-black text-center max-w-3xl px-4 hidden md:block tracking-tight ${showMobilePanel ? 'text-xs' : 'text-sm md:text-lg'}`}
+                  style={{ bottom: '15%' }}
+                >
+                  {nextSentence}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          
+          {/* 모바일 하단 번역 패널 (텍스트 영역 아래에 Flex로 붙음) */}
+          {showMobilePanel && (
+            <div className="md:hidden h-[45vh] bg-white border-t border-black flex flex-col shadow-inner">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 shrink-0">
+                <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
+                <button onClick={() => setShowMobilePanel(false)} className="text-black text-lg leading-none px-2 font-mono">×</button>
+              </div>
+              <div className="flex-1 p-5 overflow-y-auto">
+                {isAnalyzing ? (
+                  <div className="animate-pulse flex flex-col gap-3">
+                    <div className="h-2 bg-gray-200 w-3/4"></div>
+                    <div className="h-2 bg-gray-200 w-full"></div>
+                  </div>
+                ) : analysis ? (
+                  <div>
+                    {breakdownList.length > 0 ? (
+                      <div className="leading-[2rem] text-sm break-words">
+                        {breakdownList.map((item, idx) => (
+                          <span key={idx} className="inline-block mr-1">
+                            <span className="text-black font-semibold">{item.chunk}</span>
+                            <span className="text-gray-500 text-xs ml-1 font-mono">[{item.meaning}]</span>
+                            {idx < breakdownList.length - 1 && (
+                              <span className="text-gray-300 mx-1 align-middle">/</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No data</div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* 데스크톱 우측 직독직해 패널 */}
         <div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
           <div className="p-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
@@ -507,49 +571,6 @@ export default function Player() {
             ) : null}
           </div>
         </div>
-      </div>
-
-      <div className="md:hidden">
-        {showMobilePanel && (
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'tween', duration: 0.2 }}
-            className="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-black max-h-[60vh] flex flex-col shadow-2xl"
-          >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 shrink-0">
-              <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
-              <button onClick={() => setShowMobilePanel(false)} className="text-black text-lg leading-none px-2 font-mono">×</button>
-            </div>
-            <div className="flex-1 p-5 overflow-y-auto">
-              {isAnalyzing ? (
-                <div className="animate-pulse flex flex-col gap-3">
-                  <div className="h-2 bg-gray-200 w-3/4"></div>
-                  <div className="h-2 bg-gray-200 w-full"></div>
-                </div>
-              ) : analysis ? (
-                <div>
-                  {breakdownList.length > 0 ? (
-                    <div className="leading-[2rem] text-sm break-words">
-                      {breakdownList.map((item, idx) => (
-                        <span key={idx} className="inline-block mr-1">
-                          <span className="text-black font-semibold">{item.chunk}</span>
-                          <span className="text-gray-500 text-xs ml-1 font-mono">[{item.meaning}]</span>
-                          {idx < breakdownList.length - 1 && (
-                            <span className="text-gray-300 mx-1 align-middle">/</span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No data</div>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          </motion.div>
-        )}
       </div>
 
       <div 
@@ -610,7 +631,7 @@ export default function Player() {
           
           <button 
             onClick={() => setShowMobilePanel(!showMobilePanel)}
-            className="md:hidden p-2 text-gray-400 hover:text-black transition-colors"
+            className={`md:hidden p-2 transition-colors ${showMobilePanel ? 'text-black' : 'text-gray-400 hover:text-black'}`}
           >
             <BookOpen className="w-4 h-4" />
           </button>
