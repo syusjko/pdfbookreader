@@ -139,14 +139,10 @@ export default function Player() {
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
   useEffect(() => {
-    let isActive = true;
+    if (!audioRef.current) return;
 
     if (!isPlaying) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
+      audioRef.current.pause();
       return;
     }
 
@@ -164,58 +160,37 @@ export default function Player() {
     else if (lang === 'ja') voiceConfig = { voice: 'ja-JP-NanamiNeural', lang: 'ja-JP' };
     else if (lang === 'zh') voiceConfig = { voice: 'zh-CN-XiaoxiaoNeural', lang: 'zh-CN' };
 
-    fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: currentText, ...voiceConfig })
-    })
-    .then(res => res.blob())
-    .then(blob => {
-      if (!isActive) return;
-      
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.playbackRate = readingSpeed;
-      
-      audio.onended = () => {
-        if (isActive && isPlaying) {
-          setCurrentIndex(prev => prev + 1);
-        }
-        URL.revokeObjectURL(url);
-      };
-      
-      audio.onerror = (e) => {
-        console.error("TTS Audio Error:", e);
-        setIsPlaying(false);
-      };
+    const srcUrl = `/api/tts?text=${encodeURIComponent(currentText)}&voice=${encodeURIComponent(voiceConfig.voice)}&lang=${encodeURIComponent(voiceConfig.lang)}`;
+    
+    audioRef.current.playbackRate = readingSpeed;
 
-      audio.play().catch(e => {
-        console.error("Audio play error:", e);
+    // Check if the source is actually changing to avoid restarting
+    const currentSrc = audioRef.current.src || "";
+    if (!currentSrc.includes(encodeURIComponent(currentText))) {
+      audioRef.current.src = srcUrl;
+      audioRef.current.load();
+    }
+    
+    const playPromise = audioRef.current.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(e => {
+        console.error("Autoplay prevented:", e);
         setIsPlaying(false);
       });
-      
-      audioRef.current = audio;
-    })
-    .catch(err => {
-      console.error("TTS Fetch Error:", err);
-      setIsPlaying(false);
-    });
-
-    return () => {
-      isActive = false;
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
-    };
+    }
   }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentIndex(parseInt(e.target.value));
   };
 
-  const togglePlay = () => setIsPlaying(!isPlaying);
+  const togglePlay = () => {
+    if (!isPlaying && audioRef.current) {
+      // Unlock audio context on iOS Safari
+      audioRef.current.play().catch(() => {});
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   if (sentences.length === 0) {
     return (
@@ -227,7 +202,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v8</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v9</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -410,6 +385,18 @@ export default function Player() {
             )}
           </AnimatePresence>
         </div>
+
+        <audio 
+          ref={audioRef} 
+          onEnded={() => {
+            if (isPlaying) setCurrentIndex(prev => prev + 1);
+          }}
+          onError={(e) => {
+            console.error("Audio Error:", e);
+            setIsPlaying(false);
+          }}
+          className="hidden" 
+        />
 
         {/* 우측 패널: 직독직해 — 데스크톱에서만 */}
         <div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
