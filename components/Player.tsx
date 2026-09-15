@@ -45,14 +45,6 @@ export default function Player() {
   
   const CHUNK_SIZE = 10;
   const [cacheTrigger, setCacheTrigger] = useState(0);
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  useEffect(() => {
-    const loadVoices = () => setAvailableVoices(window.speechSynthesis.getVoices());
-    loadVoices();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-  }, []);
   const analysisCache = useRef<Record<number, any>>({});
   
   const audioCache = useRef<Record<number, Promise<string | null>>>({});
@@ -241,58 +233,49 @@ export default function Player() {
   }, [readingSpeed]);
 
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || sentences.length === 0) return;
+
     if (!isPlaying) {
-      window.speechSynthesis.cancel();
+      audio.pause();
+      playAbortRef.current?.abort();
       return;
     }
-    
+
     if (currentIndex >= sentences.length) {
       setIsPlaying(false);
       return;
     }
     
-    const text = sentences[currentIndex];
-    if (!text || !text.trim()) {
-      setCurrentIndex(prev => prev + 1);
-      return;
-    }
-    
-    // Stop any current speech
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = bookLang;
-    utterance.rate = readingSpeed;
-    
-    const langVoices = availableVoices.filter(v => v.lang.startsWith(bookLang.split('-')[0]));
-    if (langVoices.length > 0) {
-      const natural = langVoices.find(v => v.name.includes("Natural"));
-      const premium = langVoices.find(v => v.name.includes("Premium") || v.name.includes("Enhanced"));
-      const google = langVoices.find(v => v.name.includes("Google"));
-      utterance.voice = natural || premium || google || langVoices[0];
-    }
-    
-    utterance.onend = () => {
-      // 400ms breathing pause between sentences
-      setTimeout(() => {
-        setCurrentIndex(prev => prev + 1);
-      }, 400);
-    };
-    
-    utterance.onerror = (e) => {
-      if (e.error !== 'interrupted' && e.error !== 'canceled') {
-        console.error("Speech error:", e);
+    const abortCtrl = new AbortController();
+    playAbortRef.current = abortCtrl;
+    setIsAudioLoading(true);
+
+    (async () => {
+      try {
+        const blobUrl = await fetchAudioForIndex(currentIndex);
+        if (abortCtrl.signal.aborted) return;
+
+        if (!blobUrl) {
+          throw new Error("Failed to load audio");
+        }
+
+        audio.src = blobUrl;
+        audio.playbackRate = readingSpeed;
+        setIsAudioLoading(false);
+        await audio.play();
+      } catch (e: any) {
+        if (e.name === 'AbortError') return;
+        console.error('TTS play error:', e);
+        setIsAudioLoading(false);
         setIsPlaying(false);
       }
-    };
-    
-    setIsAudioLoading(false);
-    window.speechSynthesis.speak(utterance);
-    
+    })();
+
     return () => {
-      window.speechSynthesis.cancel();
+      abortCtrl.abort();
     };
-  }, [currentIndex, isPlaying, sentences, readingSpeed, bookLang, availableVoices]);
+  }, [currentIndex, isPlaying, sentences]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newIdx = parseInt(e.target.value);
