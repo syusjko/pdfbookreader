@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html><body>
+<html>
+<body>
 <script>
-  const ws = new WebSocket('wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4');
-  ws.onopen = () => fetch('/log?msg=OPENED');
-  ws.onerror = (e) => fetch('/log?msg=ERROR');
-  ws.onclose = (e) => fetch('/log?msg=CLOSED_' + e.code);
+const ws = new WebSocket('wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4');
+ws.onopen = () => {
+  console.log('Connected');
+  ws.close();
+};
+ws.onerror = (e) => console.log('Error', e);
 </script>
-</body></html>
+</body>
+</html>

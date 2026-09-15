@@ -1,12 +1,24 @@
 import { NextResponse } from 'next/server';
-import { EdgeTTS } from 'node-edge-tts';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import os from 'os';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
+
+function chunkString(str: string, maxLen: number): string[] {
+  const chunks = [];
+  let i = 0;
+  while (i < str.length) {
+    let chunk = str.substring(i, i + maxLen);
+    if (i + maxLen < str.length) {
+      let lastSpace = chunk.lastIndexOf(' ');
+      if (lastSpace > maxLen * 0.5) {
+        chunk = chunk.substring(0, lastSpace);
+      }
+    }
+    chunks.push(chunk);
+    i += chunk.length;
+  }
+  return chunks;
+}
 
 export async function GET(req: Request) {
   try {
@@ -18,39 +30,59 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    // Determine high-quality Azure Neural voice based on language
-    let voice = 'en-US-AriaNeural'; // Default English
-    if (lang.startsWith('en')) {
-      voice = 'en-US-AriaNeural';
-    } else if (lang.startsWith('fr')) {
-      voice = 'fr-FR-DeniseNeural';
-    } else if (lang.startsWith('ko')) {
-      voice = 'ko-KR-SunHiNeural';
-    } else if (lang.startsWith('ja')) {
-      voice = 'ja-JP-NanamiNeural';
-    } else if (lang.startsWith('es')) {
-      voice = 'es-ES-ElviraNeural';
+    const tl = lang.split('-')[0]; // en, fr, ko, ja
+    
+    // Select high-quality TikTok Neural Voice
+    let voice = 'en_us_001'; // Default English Female
+    if (tl === 'fr') voice = 'fr_002'; // French Female
+    else if (tl === 'ko') voice = 'kr_003'; // Korean Female
+    else if (tl === 'ja') voice = 'jp_001'; // Japanese Female
+
+    const chunks = chunkString(text, 180);
+    const buffers: Buffer[] = [];
+    
+    for (const chunk of chunks) {
+      if (!chunk.trim()) continue;
+      
+      try {
+        // Try TikTok TTS First (Neural Voice)
+        const tRes = await fetch('https://tiktok-tts.weilnet.workers.dev/api/generation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: chunk.trim(), voice })
+        });
+        
+        if (!tRes.ok) throw new Error('TikTok API error');
+        const data = await tRes.json();
+        
+        if (data.error || !data.data) {
+          throw new Error('TikTok generation failed');
+        }
+        
+        buffers.push(Buffer.from(data.data, 'base64'));
+      } catch (e) {
+        // Fallback to Google TTS (Standard Voice) if Neural fails
+        console.warn('TikTok TTS failed, falling back to Google TTS:', e);
+        const encodedText = encodeURIComponent(chunk.trim());
+        const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${tl}&client=tw-ob`;
+
+        const audioRes = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+        });
+
+        if (audioRes.ok) {
+          buffers.push(Buffer.from(await audioRes.arrayBuffer()));
+        }
+      }
     }
+    
+    const finalBuffer = Buffer.concat(buffers);
 
-    const tts = new EdgeTTS({
-      voice: voice,
-      lang: lang,
-      outputFormat: 'audio-24khz-48kbitrate-mono-mp3'
-    });
-
-    const tmpDir = os.tmpdir();
-    const tmpFile = path.join(tmpDir, `${crypto.randomUUID()}.mp3`);
-
-    await tts.ttsPromise(text, tmpFile);
-
-    const buffer = fs.readFileSync(tmpFile);
-    fs.unlinkSync(tmpFile); // Clean up immediately
-
-    return new Response(buffer, {
+    return new Response(finalBuffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=31536000, immutable',
-        'Content-Length': String(buffer.byteLength)
+        'Content-Length': String(finalBuffer.byteLength)
       }
     });
 
