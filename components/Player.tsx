@@ -25,14 +25,14 @@ export default function Player() {
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [readingSpeed, setReadingSpeed] = useState(0.65); // Default slow storytelling pace
+  const [readingSpeed, setReadingSpeed] = useState(0.85); 
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     if (isPlaying && showControls) {
       timeoutId = setTimeout(() => {
         setShowControls(false);
-      }, 3500); // Hide after 3.5 seconds of playback
+      }, 3500); 
     } else if (!isPlaying) {
       setShowControls(true);
     }
@@ -42,107 +42,8 @@ export default function Player() {
   const [cacheTrigger, setCacheTrigger] = useState(0);
   const analysisCache = useRef<Record<number, any>>({});
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
-  const lastLoadedText = useRef<string | null>(null);
-  const playAbortRef = useRef<AbortController | null>(null);
-
-  // Cleanup blob URL when no longer needed
-  const revokeBlobUrl = () => {
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
-  };
-
-  const getVoiceConfig = (lang: string) => {
-    const l = lang.split('-')[0];
-    if (l === 'ko') return { voice: 'ko-KR-SunHiNeural', lang: 'ko-KR' };
-    if (l === 'fr') return { voice: 'fr-FR-DeniseNeural', lang: 'fr-FR' };
-    if (l === 'ja') return { voice: 'ja-JP-NanamiNeural', lang: 'ja-JP' };
-    if (l === 'zh') return { voice: 'zh-CN-XiaoxiaoNeural', lang: 'zh-CN' };
-    return { voice: 'en-US-JennyNeural', lang: 'en-US' };
-  };
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!isPlaying) {
-      audio.pause();
-      playAbortRef.current?.abort();
-      return;
-    }
-
-    if (sentences.length === 0 || currentIndex >= sentences.length) {
-      setIsPlaying(false);
-      return;
-    }
-
-    const currentText = sentences[currentIndex];
-
-    // Same sentence, already loaded — just resume
-    if (lastLoadedText.current === currentText && blobUrlRef.current) {
-      audio.playbackRate = readingSpeed;
-      audio.play().catch(e => {
-        console.error('Resume error:', e);
-        setIsPlaying(false);
-      });
-      return;
-    }
-
-    // New sentence — fetch audio then play
-    const abortCtrl = new AbortController();
-    playAbortRef.current = abortCtrl;
-
-    const voiceConfig = getVoiceConfig(bookLang);
-    const apiUrl = `/api/tts?text=${encodeURIComponent(currentText)}&voice=${encodeURIComponent(voiceConfig.voice)}&lang=${encodeURIComponent(voiceConfig.lang)}`;
-
-    (async () => {
-      try {
-        const res = await fetch(apiUrl, { signal: abortCtrl.signal });
-        if (!res.ok) {
-          const errJson = await res.json().catch(() => ({ error: res.status }));
-          console.error('TTS API error:', errJson);
-          setIsPlaying(false);
-          return;
-        }
-        const blob = await res.blob();
-        if (abortCtrl.signal.aborted) return;
-
-        revokeBlobUrl();
-        const url = URL.createObjectURL(blob);
-        blobUrlRef.current = url;
-        lastLoadedText.current = currentText;
-
-        audio.src = url;
-        audio.playbackRate = readingSpeed;
-        await audio.play();
-      } catch (e: any) {
-        if (e.name === 'AbortError') return;
-        console.error('TTS play error:', e);
-        setIsPlaying(false);
-      }
-    })();
-
-    return () => {
-      abortCtrl.abort();
-    };
-  }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    lastLoadedText.current = null;
-    revokeBlobUrl();
-    setCurrentIndex(parseInt(e.target.value));
-  };
-
-  const togglePlay = () => {
-    if (!isPlaying && audioRef.current) {
-      // iOS Safari: must call play() synchronously inside a user gesture
-      audioRef.current.play().catch(() => {});
-    }
-    setIsPlaying(prev => !prev);
-  };
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const isSpeakingRef = useRef(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -159,7 +60,6 @@ export default function Player() {
       const koCount = (storyText.match(/[가-힣]/g) || []).length;
       setBookLang(koCount > 50 ? 'ko-KR' : (frCount > 20 ? 'fr-FR' : 'en-US'));
 
-      // 🚀 개선된 챕터 추출 알고리즘 (문장 앞머리 매칭)
       const extractedChapters: {index: number, title: string}[] = [];
       const chRegex = /^(PREMIER|DEUXI[ÈE]ME|TROISI[ÈE]ME|QUATRI[ÈE]ME|CINQUI[ÈE]ME|SIXI[ÈE]ME|SEPTI[ÈE]ME|HUITI[ÈE]ME|NEUVI[ÈE]ME|DIXI[ÈE]ME)\s+CHAPITRE|^(CHAPITRE|CHAPTER)\s*(?:[IVX]+|\d+)|^제\s*\d+\s*장/i;
       const romanStandalone = /^([IVXL]+)\.?$/i;
@@ -186,8 +86,6 @@ export default function Player() {
     }
     setIsLoading(false);
   };
-
-
 
   const fetchChunk = (chunkIdx: number) => {
     if (!apiKey || chunkIdx * CHUNK_SIZE >= sentences.length) return;
@@ -238,6 +136,89 @@ export default function Player() {
     fetchChunk(currentChunkIdx + 1);
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
+  // --- Web Speech API (Client-side TTS) ---
+  useEffect(() => {
+    if (sentences.length === 0 || currentIndex >= sentences.length) {
+      setIsPlaying(false);
+      return;
+    }
+
+    const currentText = sentences[currentIndex];
+    const synth = window.speechSynthesis;
+
+    const speak = () => {
+      synth.cancel(); // Stop any ongoing speech
+
+      const utterance = new SpeechSynthesisUtterance(currentText);
+      utterance.lang = bookLang;
+      utterance.rate = readingSpeed; 
+      
+      // Try to pick the highest quality voice available on the device
+      const voices = synth.getVoices();
+      const langVoices = voices.filter(v => v.lang.startsWith(bookLang.split('-')[0]));
+      
+      // Prefer Apple "Premium" or "Enhanced" voices if on iOS/Mac, or Google voices on Chrome
+      const premiumVoice = langVoices.find(v => v.name.includes('Premium') || v.name.includes('Enhanced') || v.name.includes('Google'));
+      if (premiumVoice) {
+        utterance.voice = premiumVoice;
+      } else if (langVoices.length > 0) {
+        utterance.voice = langVoices[0];
+      }
+
+      utterance.onstart = () => {
+        isSpeakingRef.current = true;
+      };
+
+      utterance.onend = () => {
+        isSpeakingRef.current = false;
+        if (isPlaying) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      };
+
+      utterance.onerror = (e) => {
+        if (e.error !== 'canceled') {
+          console.error("SpeechSynthesis error:", e);
+          setIsPlaying(false);
+        }
+      };
+
+      utteranceRef.current = utterance;
+      synth.speak(utterance);
+    };
+
+    if (isPlaying) {
+      // Small timeout allows voices to load in some browsers
+      if (synth.getVoices().length === 0) {
+        synth.onvoiceschanged = speak;
+      } else {
+        speak();
+      }
+    } else {
+      synth.cancel();
+      isSpeakingRef.current = false;
+    }
+
+    return () => {
+      // Don't cancel immediately on unmount/re-render, only let the next speak() cancel it
+      // otherwise it clips audio between words.
+    };
+  }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    window.speechSynthesis.cancel();
+    setCurrentIndex(parseInt(e.target.value));
+  };
+
+  const togglePlay = () => {
+    if (!isPlaying) {
+      // iOS Safari requires a direct interaction to unlock speech synthesis
+      // Creating a silent utterance on click unlocks the audio context forever
+      const silent = new SpeechSynthesisUtterance('');
+      window.speechSynthesis.speak(silent);
+    }
+    setIsPlaying(prev => !prev);
+  };
 
   if (sentences.length === 0) {
     return (
@@ -249,7 +230,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v10</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v13</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -341,18 +322,6 @@ export default function Player() {
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-black relative overflow-hidden">
       
-      <audio
-        ref={audioRef}
-        className="hidden"
-        onEnded={() => {
-          if (isPlaying) setCurrentIndex(prev => prev + 1);
-        }}
-        onError={(e) => {
-          console.error('Audio element error:', e);
-          setIsPlaying(false);
-        }}
-      />
-
       {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
       <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group">
         <div className="absolute inset-0 w-12 bg-transparent z-10" />
@@ -444,18 +413,6 @@ export default function Player() {
             )}
           </AnimatePresence>
         </div>
-
-        <audio 
-          ref={audioRef} 
-          onEnded={() => {
-            if (isPlaying) setCurrentIndex(prev => prev + 1);
-          }}
-          onError={(e) => {
-            console.error("Audio Error:", e);
-            setIsPlaying(false);
-          }}
-          className="hidden" 
-        />
 
         {/* 우측 패널: 직독직해 — 데스크톱에서만 */}
         <div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
@@ -636,8 +593,8 @@ export default function Player() {
           <button
             onClick={() => {
               setReadingSpeed(prev => {
-                if (prev === 0.65) return 0.8;
-                if (prev === 0.8) return 1.0;
+                if (prev === 0.65) return 0.85;
+                if (prev === 0.85) return 1.0;
                 return 0.65;
               });
             }}
