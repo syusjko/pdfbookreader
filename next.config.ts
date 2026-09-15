@@ -1,6 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  webpack: (config) => {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  webpack: (config: any) => {
     config.resolve.alias.canvas = false;
     config.resolve.alias.encoding = false;
     return config;
