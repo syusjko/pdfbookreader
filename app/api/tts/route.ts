@@ -31,58 +31,53 @@ export async function GET(req: Request) {
     }
 
     const tl = lang.split('-')[0]; // en, fr, ko, ja
+    
+    // Select high-quality TikTok Neural Voice
+    let voice = 'en_male_narration'; // Professional Audiobook Narrator (English)
+    if (tl === 'fr') voice = 'fr_001'; // French Calm Male
+    else if (tl === 'ko') voice = 'kr_004'; // Korean Calm Male
+    else if (tl === 'ja') voice = 'jp_006'; // Japanese Calm Male
+
     const chunks = chunkString(text, 180);
     const buffers: Buffer[] = [];
     
-    // 1. Check if user deployed Cloudflare Worker Proxy
-    // If you deployed the worker, set CF_WORKER_URL in your Vercel Environment Variables
-    const cfWorkerUrl = process.env.CF_WORKER_URL; // e.g. "https://my-edge-tts.yourname.workers.dev"
-
-    if (cfWorkerUrl) {
-      let edgeVoice = 'en-US-AriaNeural';
-      if (tl === 'fr') edgeVoice = 'fr-FR-HenriNeural'; // Deep French Male
-      else if (tl === 'ko') edgeVoice = 'ko-KR-InJoonNeural'; // Deep Korean Male
-      else if (tl === 'ja') edgeVoice = 'ja-JP-KeitaNeural'; // Deep Japanese Male
-
-      for (const chunk of chunks) {
-        if (!chunk.trim()) continue;
-        const res = await fetch(cfWorkerUrl, {
+    for (const chunk of chunks) {
+      if (!chunk.trim()) continue;
+      
+      try {
+        // Use TikTok TTS (Neural Voice)
+        const tRes = await fetch('https://tiktok-tts.weilnet.workers.dev/api/generation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: chunk.trim(), voice: edgeVoice })
+          body: JSON.stringify({ text: chunk.trim(), voice })
         });
-        if (res.ok) buffers.push(Buffer.from(await res.arrayBuffer()));
-      }
-    } 
-    // 2. Fallback to TikTok API (if Cloudflare Worker is not set)
-    else {
-      let voice = 'en_male_narration'; 
-      if (tl === 'fr') voice = 'fr_001'; 
-      else if (tl === 'ko') voice = 'kr_004'; 
-      else if (tl === 'ja') voice = 'jp_006'; 
+        
+        if (!tRes.ok) throw new Error('TikTok API error');
+        const data = await tRes.json();
+        
+        if (data.error || !data.data) {
+          throw new Error('TikTok generation failed');
+        }
+        
+        buffers.push(Buffer.from(data.data, 'base64'));
+      } catch (e) {
+        // Fallback to Google TTS (Standard Voice) if Neural fails
+        console.warn('TikTok TTS failed, falling back to Google TTS:', e);
+        const encodedText = encodeURIComponent(chunk.trim());
+        const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${tl}&client=tw-ob`;
 
-      for (const chunk of chunks) {
-        if (!chunk.trim()) continue;
-        try {
-          const tRes = await fetch('https://tiktok-tts.weilnet.workers.dev/api/generation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: chunk.trim(), voice })
-          });
-          if (!tRes.ok) throw new Error();
-          const data = await tRes.json();
-          if (data.error || !data.data) throw new Error();
-          buffers.push(Buffer.from(data.data, 'base64'));
-        } catch (e) {
-          const encodedText = encodeURIComponent(chunk.trim());
-          const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${tl}&client=tw-ob`;
-          const audioRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }});
-          if (audioRes.ok) buffers.push(Buffer.from(await audioRes.arrayBuffer()));
+        const audioRes = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+        });
+
+        if (audioRes.ok) {
+          buffers.push(Buffer.from(await audioRes.arrayBuffer()));
         }
       }
     }
     
     const finalBuffer = Buffer.concat(buffers);
+
     return new Response(finalBuffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
