@@ -295,12 +295,12 @@ export default function Player() {
           </div>
         )}
         
-        <nav className="flex items-center justify-between px-8 py-6 border-b border-gray-200">
+        <nav className="flex items-center justify-between px-6 md:px-8 py-5 md:py-6 border-b border-gray-200 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v19 (Stable & Flex)</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v20</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -312,47 +312,53 @@ export default function Player() {
           </a>
         </nav>
 
-        <main className="flex-1 flex flex-col items-center justify-center px-6 pb-16">
-          <div className="text-center mb-16 max-w-2xl">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-6">
-              READ.<br />
-              <span className="text-gray-400">TRANSLATE.</span>
-            </h1>
-            <p className="text-sm md:text-base text-gray-600 max-w-md mx-auto">
-              PDF 문서를 업로드하면 기계가 문장을 소리 내어 읽고, 구조를 해체하여 직독직해를 제공합니다.
-            </p>
-          </div>
+        <main className="flex-1 overflow-y-auto flex flex-col px-6 py-10">
+          <div className="m-auto w-full flex flex-col items-center justify-center max-w-2xl">
+            <div className="text-center mb-12 md:mb-16">
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-4 md:mb-6">
+                READ.<br />
+                <span className="text-gray-400">TRANSLATE.</span>
+              </h1>
+              <p className="text-sm md:text-base text-gray-600 max-w-md mx-auto">
+                PDF 문서를 업로드하면 기계가 문장을 소리 내어 읽고, 구조를 해체하여 직독직해를 제공합니다.
+              </p>
+            </div>
 
-          <div className="flex flex-wrap justify-center gap-2 mb-12">
-            {['TEXT-TO-SPEECH', 'TRANSLATION', 'SYNTAX-ANALYSIS', 'CHAPTER-NAV'].map((label) => (
-              <div key={label} className="px-3 py-1 border border-gray-300 text-[10px] md:text-xs font-mono text-gray-500 uppercase tracking-wider">
-                {label}
+            <div className="flex flex-wrap justify-center gap-2 mb-10 md:mb-12">
+              {['TEXT-TO-SPEECH', 'TRANSLATION', 'SYNTAX-ANALYSIS', 'CHAPTER-NAV'].map((label) => (
+                <div key={label} className="px-3 py-1 border border-gray-300 text-[10px] md:text-xs font-mono text-gray-500 uppercase tracking-wider">
+                  {label}
+                </div>
+              ))}
+            </div>
+
+            <div className="w-full max-w-md space-y-3 pb-8">
+              <label className="flex flex-col items-center justify-center w-full h-40 md:h-48 border border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group">
+                <div className="flex flex-col items-center text-center px-4">
+                  <UploadCloud className="w-6 h-6 text-black mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  <p className="text-sm font-semibold text-black mb-1">UPLOAD PDF</p>
+                  <p className="text-[10px] md:text-xs text-gray-500">Click or drag and drop</p>
+                </div>
+                <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
+              </label>
+
+              <div className="flex items-center gap-3 px-4 py-3 border border-gray-300 bg-white">
+                <Key className="w-4 h-4 text-gray-400 shrink-0" />
+                <input 
+                  type="password" 
+                  placeholder="Enter API Key (Optional)" 
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="flex-1 bg-transparent text-sm font-mono text-black placeholder:text-gray-400 outline-none"
+                />
               </div>
-            ))}
-          </div>
-
-          <div className="w-full max-w-md space-y-3">
-            <label className="flex flex-col items-center justify-center w-full h-48 border border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group">
-              <div className="flex flex-col items-center text-center px-4">
-                <UploadCloud className="w-6 h-6 text-black mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                <p className="text-sm font-semibold text-black mb-1">UPLOAD PDF</p>
-                <p className="text-xs text-gray-500">Click or drag and drop</p>
-              </div>
-              <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
-            </label>
-
-            <div className="flex items-center gap-3 px-4 py-3 border border-gray-300 bg-white">
-              <Key className="w-4 h-4 text-gray-400 shrink-0" />
-              <input 
-                type="password" 
-                placeholder="Enter API Key (Optional)" 
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1 bg-transparent text-sm font-mono text-black placeholder:text-gray-400 outline-none"
-              />
             </div>
           </div>
         </main>
+
+        <footer className="text-center py-5 border-t border-gray-200 shrink-0">
+          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Powered by AI Voices</p>
+        </footer>
       </div>
     );
   }
