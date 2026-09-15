@@ -221,7 +221,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v6</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v7</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -311,7 +311,7 @@ export default function Player() {
   const breakdownList = Array.isArray(analysis?.breakdown) ? analysis.breakdown : [];
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-white font-sans text-black relative overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white font-sans text-black relative overflow-hidden">
       
       {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
       <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group">
