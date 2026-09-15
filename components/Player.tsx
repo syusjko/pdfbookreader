@@ -10,6 +10,7 @@ export default function Player() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false); // To show loading state for audio
   
   const [apiKey, setApiKey] = useState('');
   
@@ -25,7 +26,7 @@ export default function Player() {
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [readingSpeed, setReadingSpeed] = useState(1.0); // Kokoro handles its own pacing naturally
+  const [readingSpeed, setReadingSpeed] = useState(1.0); 
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -38,21 +39,17 @@ export default function Player() {
     }
     return () => clearTimeout(timeoutId);
   }, [isPlaying, showControls]);
+  
   const CHUNK_SIZE = 10;
   const [cacheTrigger, setCacheTrigger] = useState(0);
   const analysisCache = useRef<Record<number, any>>({});
+  
+  // Audio caching refs
+  const audioCache = useRef<Record<number, Promise<string | null>>>({});
+  const activeFetches = useRef<Set<number>>(new Set());
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
-  const lastLoadedText = useRef<string | null>(null);
   const playAbortRef = useRef<AbortController | null>(null);
-
-  const revokeBlobUrl = () => {
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
-  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,6 +85,14 @@ export default function Player() {
       setSentences(split);
       setCurrentIndex(0);
       analysisCache.current = {}; 
+      
+      // Clear audio cache on new file
+      Object.values(audioCache.current).forEach(p => {
+        p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
+      });
+      audioCache.current = {};
+      activeFetches.current.clear();
+      
       setCacheTrigger(0);
     } catch (err: any) {
       console.error(err);
@@ -145,10 +150,49 @@ export default function Player() {
     fetchChunk(currentChunkIdx + 1);
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
-  // --- API based TTS (fetch + blob) for Kokoro-82M ---
+  // --- AUDIO PREFETCH LOGIC ---
+  const fetchAudioForIndex = (index: number): Promise<string | null> => {
+    if (index >= sentences.length) return Promise.resolve(null);
+    if (audioCache.current[index]) return audioCache.current[index];
+    if (activeFetches.current.has(index)) return Promise.resolve(null);
+
+    activeFetches.current.add(index);
+    const text = sentences[index];
+    const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
+
+    const promise = fetch(apiUrl)
+      .then(res => {
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        return res.blob();
+      })
+      .then(blob => {
+        activeFetches.current.delete(index);
+        return URL.createObjectURL(blob);
+      })
+      .catch(err => {
+        console.error(`Prefetch error for index ${index}:`, err);
+        activeFetches.current.delete(index);
+        delete audioCache.current[index]; // Allow retry
+        return null;
+      });
+
+    audioCache.current[index] = promise;
+    return promise;
+  };
+
+  // Trigger prefetching for next 2 sentences whenever index changes
+  useEffect(() => {
+    if (sentences.length === 0) return;
+    // Always ensure current + next 2 are fetched/fetching
+    fetchAudioForIndex(currentIndex);
+    fetchAudioForIndex(currentIndex + 1);
+    fetchAudioForIndex(currentIndex + 2);
+  }, [currentIndex, sentences, bookLang, readingSpeed]);
+
+  // --- AUDIO PLAYBACK LOGIC ---
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || sentences.length === 0) return;
 
     if (!isPlaying) {
       audio.pause();
@@ -156,51 +200,32 @@ export default function Player() {
       return;
     }
 
-    if (sentences.length === 0 || currentIndex >= sentences.length) {
+    if (currentIndex >= sentences.length) {
       setIsPlaying(false);
       return;
     }
 
-    const currentText = sentences[currentIndex];
-
-    // Same sentence, already loaded — just resume
-    if (lastLoadedText.current === currentText && blobUrlRef.current) {
-      audio.play().catch(e => {
-        console.error('Resume error:', e);
-        setIsPlaying(false);
-      });
-      return;
-    }
-
-    // New sentence — fetch audio then play
     const abortCtrl = new AbortController();
     playAbortRef.current = abortCtrl;
-
-    // Call our Kokoro-82M API route
-    const apiUrl = `/api/tts?text=${encodeURIComponent(currentText)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
+    setIsAudioLoading(true);
 
     (async () => {
       try {
-        const res = await fetch(apiUrl, { signal: abortCtrl.signal });
-        if (!res.ok) {
-          const errJson = await res.json().catch(() => ({ error: res.status }));
-          console.error('Kokoro TTS API error:', errJson);
-          setIsPlaying(false);
-          return;
-        }
-        const blob = await res.blob();
+        // Wait for the cached promise (or fetch it if somehow missing)
+        const blobUrl = await fetchAudioForIndex(currentIndex);
         if (abortCtrl.signal.aborted) return;
 
-        revokeBlobUrl();
-        const url = URL.createObjectURL(blob);
-        blobUrlRef.current = url;
-        lastLoadedText.current = currentText;
+        if (!blobUrl) {
+          throw new Error("Failed to load audio");
+        }
 
-        audio.src = url;
+        audio.src = blobUrl;
+        setIsAudioLoading(false);
         await audio.play();
       } catch (e: any) {
         if (e.name === 'AbortError') return;
         console.error('TTS play error:', e);
+        setIsAudioLoading(false);
         setIsPlaying(false);
       }
     })();
@@ -208,17 +233,16 @@ export default function Player() {
     return () => {
       abortCtrl.abort();
     };
-  }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
+  }, [currentIndex, isPlaying, sentences]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    lastLoadedText.current = null;
-    revokeBlobUrl();
-    setCurrentIndex(parseInt(e.target.value));
+    const newIdx = parseInt(e.target.value);
+    setCurrentIndex(newIdx);
   };
 
   const togglePlay = () => {
     if (!isPlaying && audioRef.current) {
-      // iOS Safari: must call play() synchronously inside a user gesture
+      // iOS Safari: unlock audio context
       audioRef.current.play().catch(() => {});
     }
     setIsPlaying(prev => !prev);
@@ -228,13 +252,12 @@ export default function Player() {
     return (
       <div className="min-h-screen bg-white flex flex-col font-sans text-black">
         
-        {/* 상단 네비게이션 */}
         <nav className="flex items-center justify-between px-8 py-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v14 (Kokoro)</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v16 (Prefetch)</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -246,9 +269,7 @@ export default function Player() {
           </a>
         </nav>
 
-        {/* 메인 히어로 섹션 */}
         <main className="flex-1 flex flex-col items-center justify-center px-6 pb-16">
-          
           <div className="text-center mb-16 max-w-2xl">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-6">
               READ.<br />
@@ -268,7 +289,6 @@ export default function Player() {
           </div>
 
           <div className="w-full max-w-md space-y-3">
-            
             <label className="flex flex-col items-center justify-center w-full h-48 border border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group">
               <div className="flex flex-col items-center text-center px-4">
                 <UploadCloud className="w-6 h-6 text-black mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -583,7 +603,13 @@ export default function Player() {
             onClick={togglePlay}
             className="w-12 h-12 flex items-center justify-center bg-black text-white hover:bg-gray-800 transition-colors"
           >
-            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
+            {isAudioLoading && isPlaying ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : isPlaying ? (
+              <Pause className="w-5 h-5" />
+            ) : (
+              <Play className="w-5 h-5 ml-1" />
+            )}
           </button>
           
           <button 
