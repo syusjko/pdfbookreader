@@ -10,7 +10,6 @@ export default function Player() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   
-  // UI States
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
   const [isAudioLoading, setIsAudioLoading] = useState(false); 
@@ -53,6 +52,13 @@ export default function Player() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playAbortRef = useRef<AbortController | null>(null);
+
+  // Pre-load voices for Web Speech API
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+    }
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,7 +104,7 @@ export default function Player() {
       analysisCache.current = {}; 
       
       Object.values(audioCache.current).forEach(p => {
-        p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
+        p.then(url => { if (url && url !== "LOCAL_TTS") URL.revokeObjectURL(url); }).catch(() => {});
       });
       audioCache.current = {};
       activeFetches.current.clear();
@@ -108,7 +114,6 @@ export default function Player() {
       if (apiKey.trim()) {
         setShowMobilePanel(true);
       }
-      
     } catch (err: any) {
       console.error(err);
       alert('PDF 파싱 중 오류가 발생했습니다: ' + (err?.message || String(err)));
@@ -170,10 +175,16 @@ export default function Player() {
     if (index in audioCache.current) return audioCache.current[index];
     if (activeFetches.current.has(index)) return Promise.resolve(null);
 
+    // If not English, Bark exhausts ZeroGPU quota too fast. We force Local TTS.
+    if (!bookLang.startsWith('en')) {
+      audioCache.current[index] = Promise.resolve("LOCAL_TTS");
+      return audioCache.current[index];
+    }
+
     activeFetches.current.add(index);
     setPrefetchStatus('Buffering AI Voice...');
     const text = sentences[index];
-    // Bark ignores speed param, Kokoro uses it.
+    
     const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
 
     const promise = fetch(apiUrl)
@@ -198,14 +209,12 @@ export default function Player() {
     return promise;
   };
 
-  // Continuous prefetch queue to prevent stalling while controlling parallel requests
   useEffect(() => {
     if (sentences.length === 0) return;
+    if (!bookLang.startsWith('en')) return; // No need to prefetch local TTS
     
     let isCancelled = false;
     
-    // We fetch up to 7 sentences ahead. 
-    // We fire them in sequence to ensure HF spaces don't time out the Vercel function.
     const prefetchAhead = async () => {
       for (let i = 0; i <= 7; i++) {
         if (isCancelled) break;
@@ -213,8 +222,6 @@ export default function Player() {
         if (targetIdx >= sentences.length) break;
         
         if (!(targetIdx in audioCache.current) && !activeFetches.current.has(targetIdx)) {
-          // Wait for one to finish generating before asking for the next.
-          // This creates a continuous background stream of generation!
           await fetchAudioForIndex(targetIdx);
         }
       }
@@ -225,7 +232,6 @@ export default function Player() {
     return () => { isCancelled = true; };
   }, [currentIndex, sentences, bookLang, readingSpeed]);
 
-  // Client-side playback rate control (Fixes speed button for Bark which ignores speed API param)
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.playbackRate = readingSpeed;
@@ -234,10 +240,12 @@ export default function Player() {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || sentences.length === 0) return;
+    if (!audio && bookLang.startsWith('en')) return;
+    if (sentences.length === 0) return;
 
     if (!isPlaying) {
-      audio.pause();
+      if (audio) audio.pause();
+      window.speechSynthesis?.cancel();
       playAbortRef.current?.abort();
       return;
     }
@@ -247,6 +255,8 @@ export default function Player() {
       return;
     }
 
+    window.speechSynthesis?.cancel(); // Cancel any existing speech
+    
     const abortCtrl = new AbortController();
     playAbortRef.current = abortCtrl;
     setIsAudioLoading(true);
@@ -260,10 +270,54 @@ export default function Player() {
           throw new Error("Failed to load audio");
         }
 
-        audio.src = blobUrl;
-        audio.playbackRate = readingSpeed; // Enforce speed just before play
-        setIsAudioLoading(false);
-        await audio.play();
+        if (blobUrl === "LOCAL_TTS") {
+          setIsAudioLoading(false);
+          const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
+          utterance.lang = bookLang;
+          utterance.rate = readingSpeed;
+          
+          const voices = window.speechSynthesis.getVoices();
+          const targetLangPrefix = bookLang.split('-')[0];
+          const targetVoices = voices.filter(v => v.lang.toLowerCase().startsWith(targetLangPrefix));
+          
+          // Try to find a high quality premium/neural voice on the user's OS
+          const premiumVoice = targetVoices.find(v => 
+            v.name.includes('Premium') || 
+            v.name.includes('Neural') || 
+            v.name.includes('Enhanced') ||
+            v.name.includes('Siri')
+          );
+          
+          if (premiumVoice) utterance.voice = premiumVoice;
+          else if (targetVoices.length > 0) utterance.voice = targetVoices[0];
+
+          utterance.onend = () => {
+            if (!abortCtrl.signal.aborted) {
+              if (isPlaying) setCurrentIndex(prev => prev + 1);
+            }
+          };
+          
+          utterance.onerror = (e) => {
+            if (e.error !== 'canceled' && e.error !== 'interrupted') {
+               console.error("SpeechSynthesis Error:", e);
+               setIsPlaying(false);
+            }
+          };
+
+          abortCtrl.signal.addEventListener('abort', () => {
+            window.speechSynthesis.cancel();
+          });
+
+          window.speechSynthesis.speak(utterance);
+          return;
+        }
+
+        if (audio) {
+          audio.src = blobUrl;
+          audio.playbackRate = readingSpeed;
+          setIsAudioLoading(false);
+          await audio.play();
+        }
       } catch (e: any) {
         if (e.name === 'AbortError') return;
         console.error('TTS play error:', e);
@@ -283,7 +337,7 @@ export default function Player() {
   };
 
   const togglePlay = () => {
-    if (!isPlaying && audioRef.current) {
+    if (!isPlaying && audioRef.current && bookLang.startsWith('en')) {
       audioRef.current.play().catch(() => {});
     }
     setIsPlaying(prev => !prev);
@@ -305,7 +359,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v20</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v22</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -395,7 +449,6 @@ export default function Player() {
         }}
       />
 
-      {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
       <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group">
         <div className="absolute inset-0 w-12 bg-transparent z-10" />
         <div className="absolute inset-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto bg-white/95 border-r border-gray-200">
@@ -427,7 +480,6 @@ export default function Player() {
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden border-b border-gray-200">
         
-        {/* 모바일 화면에서 번역창이 열리면 텍스트 영역을 위로 축소(Flex 비율 적용) */}
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showMobilePanel ? 'h-[40vh] md:h-full' : 'h-full'}`}>
           <div 
             className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0 cursor-pointer md:cursor-default"
@@ -494,7 +546,6 @@ export default function Player() {
             </AnimatePresence>
           </div>
           
-          {/* 모바일 하단 번역 패널 (텍스트 영역 아래에 Flex로 붙음) */}
           {showMobilePanel && (
             <div className="md:hidden h-[45vh] bg-white border-t border-black flex flex-col shadow-inner">
               <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 shrink-0">
@@ -531,7 +582,6 @@ export default function Player() {
           )}
         </div>
 
-        {/* 데스크톱 우측 직독직해 패널 */}
         <div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
           <div className="p-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
