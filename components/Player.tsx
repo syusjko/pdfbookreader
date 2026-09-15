@@ -138,6 +138,8 @@ export default function Player() {
     fetchChunk(currentChunkIdx + 1);
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
+  const lastLoadedText = useRef<string | null>(null);
+
   useEffect(() => {
     if (!audioRef.current) return;
 
@@ -164,11 +166,11 @@ export default function Player() {
     
     audioRef.current.playbackRate = readingSpeed;
 
-    // Check if the source is actually changing to avoid restarting
-    const currentSrc = audioRef.current.src || "";
-    if (!currentSrc.includes(encodeURIComponent(currentText))) {
+    // Check if the source is actually changing by comparing original text
+    if (lastLoadedText.current !== currentText) {
       audioRef.current.src = srcUrl;
       audioRef.current.load();
+      lastLoadedText.current = currentText;
     }
     
     const playPromise = audioRef.current.play();
