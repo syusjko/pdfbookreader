@@ -72,13 +72,16 @@ export default function Player() {
       const storyText = text.slice(startIndex);
       const split = splitIntoSentences(storyText);
       
-      const frCount = (storyText.match(/[éèàùçâêîôû]/gi) || []).length;
-      const koCount = (storyText.match(/[가-힣]/g) || []).length;
-      const jaCount = (storyText.match(/[ぁ-んァ-ン一-龥]/g) || []).length;
+      // 언어 자동 감지 (샘플 5000자 기준)
+      const sampleText = storyText.slice(0, 5000);
+      const frCount = (sampleText.match(/[éèàùçâêîôû]/gi) || []).length;
+      const koCount = (sampleText.match(/[가-힣]/g) || []).length;
+      const jaCount = (sampleText.match(/[ぁ-んァ-ン一-龥]/g) || []).length;
       
-      if (jaCount > 50) setBookLang('ja-JP');
-      else if (koCount > 50) setBookLang('ko-KR');
-      else if (frCount > 20) setBookLang('fr-FR');
+      if (jaCount > 20) setBookLang('ja-JP');
+      else if (koCount > 20) setBookLang('ko-KR');
+      // 프랑스어는 엑센트 문자가 전체 문자의 최소 1% 이상일 때만 감지 (영어책에 섞인 외래어 방지)
+      else if (frCount > sampleText.length * 0.01) setBookLang('fr-FR');
       else setBookLang('en-US');
 
       const extractedChapters: {index: number, title: string}[] = [];
@@ -677,6 +680,25 @@ export default function Player() {
           >
             {readingSpeed}x
           </button>
+          
+          <select 
+            value={bookLang} 
+            onChange={(e) => {
+               setBookLang(e.target.value);
+               // Clear audio cache to force re-fetch with new language
+               Object.values(audioCache.current).forEach(p => {
+                 p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
+               });
+               audioCache.current = {};
+               activeFetches.current.clear();
+            }}
+            className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
+          >
+            <option value="en-US">EN</option>
+            <option value="fr-FR">FR</option>
+            <option value="ko-KR">KO</option>
+            <option value="ja-JP">JA</option>
+          </select>
         </div>
       </div>
     </div>
