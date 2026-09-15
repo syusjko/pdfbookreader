@@ -1,7 +1,7 @@
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js?v=3';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js?v=4';
 }
 
 export async function extractTextFromPdf(file: File): Promise<string> {
