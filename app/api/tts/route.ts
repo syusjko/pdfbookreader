@@ -34,9 +34,9 @@ export async function GET(req: Request) {
     const chunks = chunkString(text, 180);
     const buffers: Buffer[] = [];
     
-    // 1. Check if user deployed Cloudflare Worker Proxy
-    // If you deployed the worker, set CF_WORKER_URL in your Vercel Environment Variables
+    // 1. Try Cloudflare Worker Proxy first (Azure Neural)
     const cfWorkerUrl = process.env.CF_WORKER_URL;
+    let cfWorkerSuccess = false;
 
     if (cfWorkerUrl) {
       let edgeVoice = 'en-US-AriaNeural';
@@ -44,18 +44,26 @@ export async function GET(req: Request) {
       else if (tl === 'ko') edgeVoice = 'ko-KR-InJoonNeural'; // Deep Korean Male
       else if (tl === 'ja') edgeVoice = 'ja-JP-KeitaNeural'; // Deep Japanese Male
 
-      for (const chunk of chunks) {
-        if (!chunk.trim()) continue;
-        const res = await fetch(cfWorkerUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: chunk.trim(), voice: edgeVoice })
-        });
-        if (res.ok) buffers.push(Buffer.from(await res.arrayBuffer()));
+      try {
+        for (const chunk of chunks) {
+          if (!chunk.trim()) continue;
+          const res = await fetch(cfWorkerUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: chunk.trim(), voice: edgeVoice })
+          });
+          if (!res.ok) throw new Error('CF Worker failed');
+          buffers.push(Buffer.from(await res.arrayBuffer()));
+        }
+        cfWorkerSuccess = buffers.length > 0;
+      } catch (e) {
+        console.warn('CF Worker failed, falling back to TikTok:', e);
+        buffers.length = 0; // Clear partial buffers
       }
     } 
-    // 2. Fallback to TikTok API (if Cloudflare Worker is not set)
-    else {
+    
+    // 2. Fallback to TikTok API / Google TTS
+    if (!cfWorkerSuccess) {
       let voice = 'en_male_narration'; 
       if (tl === 'fr') voice = 'fr_001'; 
       else if (tl === 'ko') voice = 'kr_004'; 
@@ -82,6 +90,10 @@ export async function GET(req: Request) {
       }
     }
     
+    if (buffers.length === 0) {
+      throw new Error("All TTS backends failed");
+    }
+
     const finalBuffer = Buffer.concat(buffers);
     return new Response(finalBuffer, {
       headers: {

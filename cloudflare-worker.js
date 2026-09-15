@@ -1,7 +1,3 @@
-/**
- * Cloudflare Worker for Microsoft Edge TTS Proxy
- * Deploy this script to your Cloudflare Workers dashboard.
- */
 export default {
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
@@ -20,20 +16,23 @@ export default {
 
     try {
       const { text, voice } = await request.json();
-      
       const uuid = crypto.randomUUID().replace(/-/g, "");
-      const wsUrl = "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4";
+      const wsUrl = "https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4";
       
       const wsResponse = await fetch(wsUrl, {
         headers: {
+          "Pragma": "no-cache",
+          "Cache-Control": "no-cache",
           "Origin": "chrome-extension://jdiccldimpdaibmpdkjnbnkndfdndkgc",
-          "Connection": "Upgrade",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Accept-Language": "en-US,en;q=0.9",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43",
           "Upgrade": "websocket"
         }
       });
       
       if (wsResponse.status !== 101) {
-        throw new Error("Failed to upgrade WebSocket");
+        throw new Error(`Failed to upgrade WebSocket, status: ${wsResponse.status}`);
       }
       
       const webSocket = wsResponse.webSocket;
