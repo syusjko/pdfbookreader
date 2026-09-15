@@ -86,9 +86,9 @@ export default function Player() {
       const koCount = (sampleText.match(/[가-힣]/g) || []).length;
       const jaCount = (sampleText.match(/[ぁ-んァ-ン一-龥]/g) || []).length;
       
-      if (jaCount > 20) { setBookLang('ja-JP'); setReadingSpeed(0.85); }
-      else if (koCount > 20) { setBookLang('ko-KR'); setReadingSpeed(0.85); }
-      else if (frCount > sampleText.length * 0.01) { setBookLang('fr-FR'); setReadingSpeed(0.85); }
+      if (jaCount > 20) { setBookLang('ja-JP'); setReadingSpeed(0.9); }
+      else if (koCount > 20) { setBookLang('ko-KR'); setReadingSpeed(0.9); }
+      else if (frCount > sampleText.length * 0.01) { setBookLang('fr-FR'); setReadingSpeed(0.9); }
       else { setBookLang('en-US'); setReadingSpeed(1.0); }
 
       const extractedChapters: {index: number, title: string}[] = [];
@@ -236,6 +236,9 @@ export default function Player() {
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.playbackRate = readingSpeed;
+      // If speed is less than 1.0, disable pitch preservation so the pitch drops proportionally.
+      // E.g., 0.9 speed = -10% speed AND -10% pitch (which sounds deeper/heavier like an audiobook).
+      (audioRef.current as any).preservesPitch = readingSpeed >= 1.0;
     }
   }, [readingSpeed]);
 
@@ -269,6 +272,7 @@ export default function Player() {
 
         audio.src = blobUrl;
         audio.playbackRate = readingSpeed;
+        (audio as any).preservesPitch = readingSpeed >= 1.0;
         setIsAudioLoading(false);
         await audio.play();
       } catch (e: any) {
@@ -757,7 +761,7 @@ export default function Player() {
             onChange={(e) => {
                const newLang = e.target.value;
                setBookLang(newLang);
-               setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.85);
+               setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.9);
                // Clear audio cache to force re-fetch with new language
                Object.values(audioCache.current).forEach(p => {
                  p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
