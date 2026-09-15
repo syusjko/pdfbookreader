@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { extractTextFromPdf, findStoryStartIndex, splitIntoSentences } from '../lib/pdfUtils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Volume2, Menu } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen } from 'lucide-react';
 
 export default function Player() {
   const [sentences, setSentences] = useState<string[]>([]);
@@ -25,7 +25,7 @@ export default function Player() {
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [readingSpeed, setReadingSpeed] = useState(0.85); 
+  const [readingSpeed, setReadingSpeed] = useState(1.0); // Kokoro handles its own pacing naturally
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -42,8 +42,17 @@ export default function Player() {
   const [cacheTrigger, setCacheTrigger] = useState(0);
   const analysisCache = useRef<Record<number, any>>({});
 
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const isSpeakingRef = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+  const lastLoadedText = useRef<string | null>(null);
+  const playAbortRef = useRef<AbortController | null>(null);
+
+  const revokeBlobUrl = () => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -136,86 +145,81 @@ export default function Player() {
     fetchChunk(currentChunkIdx + 1);
   }, [currentIndex, sentences, apiKey, cacheTrigger]); 
 
-  // --- Web Speech API (Client-side TTS) ---
+  // --- API based TTS (fetch + blob) for Kokoro-82M ---
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!isPlaying) {
+      audio.pause();
+      playAbortRef.current?.abort();
+      return;
+    }
+
     if (sentences.length === 0 || currentIndex >= sentences.length) {
       setIsPlaying(false);
       return;
     }
 
     const currentText = sentences[currentIndex];
-    const synth = window.speechSynthesis;
 
-    const speak = () => {
-      synth.cancel(); // Stop any ongoing speech
-
-      const utterance = new SpeechSynthesisUtterance(currentText);
-      utterance.lang = bookLang;
-      utterance.rate = readingSpeed; 
-      
-      // Try to pick the highest quality voice available on the device
-      const voices = synth.getVoices();
-      const langVoices = voices.filter(v => v.lang.startsWith(bookLang.split('-')[0]));
-      
-      // Prefer Apple "Premium" or "Enhanced" voices if on iOS/Mac, or Google voices on Chrome
-      const premiumVoice = langVoices.find(v => v.name.includes('Premium') || v.name.includes('Enhanced') || v.name.includes('Google'));
-      if (premiumVoice) {
-        utterance.voice = premiumVoice;
-      } else if (langVoices.length > 0) {
-        utterance.voice = langVoices[0];
-      }
-
-      utterance.onstart = () => {
-        isSpeakingRef.current = true;
-      };
-
-      utterance.onend = () => {
-        isSpeakingRef.current = false;
-        if (isPlaying) {
-          setCurrentIndex(prev => prev + 1);
-        }
-      };
-
-      utterance.onerror = (e) => {
-        if (e.error !== 'canceled') {
-          console.error("SpeechSynthesis error:", e);
-          setIsPlaying(false);
-        }
-      };
-
-      utteranceRef.current = utterance;
-      synth.speak(utterance);
-    };
-
-    if (isPlaying) {
-      // Small timeout allows voices to load in some browsers
-      if (synth.getVoices().length === 0) {
-        synth.onvoiceschanged = speak;
-      } else {
-        speak();
-      }
-    } else {
-      synth.cancel();
-      isSpeakingRef.current = false;
+    // Same sentence, already loaded — just resume
+    if (lastLoadedText.current === currentText && blobUrlRef.current) {
+      audio.play().catch(e => {
+        console.error('Resume error:', e);
+        setIsPlaying(false);
+      });
+      return;
     }
 
+    // New sentence — fetch audio then play
+    const abortCtrl = new AbortController();
+    playAbortRef.current = abortCtrl;
+
+    // Call our Kokoro-82M API route
+    const apiUrl = `/api/tts?text=${encodeURIComponent(currentText)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
+
+    (async () => {
+      try {
+        const res = await fetch(apiUrl, { signal: abortCtrl.signal });
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({ error: res.status }));
+          console.error('Kokoro TTS API error:', errJson);
+          setIsPlaying(false);
+          return;
+        }
+        const blob = await res.blob();
+        if (abortCtrl.signal.aborted) return;
+
+        revokeBlobUrl();
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+        lastLoadedText.current = currentText;
+
+        audio.src = url;
+        await audio.play();
+      } catch (e: any) {
+        if (e.name === 'AbortError') return;
+        console.error('TTS play error:', e);
+        setIsPlaying(false);
+      }
+    })();
+
     return () => {
-      // Don't cancel immediately on unmount/re-render, only let the next speak() cancel it
-      // otherwise it clips audio between words.
+      abortCtrl.abort();
     };
   }, [currentIndex, isPlaying, sentences, bookLang, readingSpeed]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    window.speechSynthesis.cancel();
+    lastLoadedText.current = null;
+    revokeBlobUrl();
     setCurrentIndex(parseInt(e.target.value));
   };
 
   const togglePlay = () => {
-    if (!isPlaying) {
-      // iOS Safari requires a direct interaction to unlock speech synthesis
-      // Creating a silent utterance on click unlocks the audio context forever
-      const silent = new SpeechSynthesisUtterance('');
-      window.speechSynthesis.speak(silent);
+    if (!isPlaying && audioRef.current) {
+      // iOS Safari: must call play() synchronously inside a user gesture
+      audioRef.current.play().catch(() => {});
     }
     setIsPlaying(prev => !prev);
   };
@@ -230,7 +234,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v13</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v14 (Kokoro)</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
@@ -245,7 +249,6 @@ export default function Player() {
         {/* 메인 히어로 섹션 */}
         <main className="flex-1 flex flex-col items-center justify-center px-6 pb-16">
           
-          {/* 제목 영역 */}
           <div className="text-center mb-16 max-w-2xl">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-6">
               READ.<br />
@@ -256,7 +259,6 @@ export default function Player() {
             </p>
           </div>
 
-          {/* 기능 태그 — 무채색 미니멀 */}
           <div className="flex flex-wrap justify-center gap-2 mb-12">
             {['TEXT-TO-SPEECH', 'TRANSLATION', 'SYNTAX-ANALYSIS', 'CHAPTER-NAV'].map((label) => (
               <div key={label} className="px-3 py-1 border border-gray-300 text-[10px] md:text-xs font-mono text-gray-500 uppercase tracking-wider">
@@ -265,10 +267,8 @@ export default function Player() {
             ))}
           </div>
 
-          {/* 업로드 + API 키 카드 */}
           <div className="w-full max-w-md space-y-3">
             
-            {/* 파일 업로드 영역 */}
             <label className="flex flex-col items-center justify-center w-full h-48 border border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group">
               <div className="flex flex-col items-center text-center px-4">
                 <UploadCloud className="w-6 h-6 text-black mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -278,7 +278,6 @@ export default function Player() {
               <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
             </label>
 
-            {/* API 키 입력 */}
             <div className="flex items-center gap-3 px-4 py-3 border border-gray-300 bg-white">
               <Key className="w-4 h-4 text-gray-400 shrink-0" />
               <input 
@@ -299,9 +298,8 @@ export default function Player() {
           </div>
         </main>
 
-        {/* 하단 푸터 */}
         <footer className="text-center py-6 border-t border-gray-200">
-          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Client-side Processing</p>
+          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Powered by Kokoro-82M</p>
         </footer>
       </div>
     );
@@ -322,7 +320,18 @@ export default function Player() {
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-black relative overflow-hidden">
       
-      {/* 좌측 챕터 사이드바 — 데스크톱 전용 */}
+      <audio
+        ref={audioRef}
+        className="hidden"
+        onEnded={() => {
+          if (isPlaying) setCurrentIndex(prev => prev + 1);
+        }}
+        onError={(e) => {
+          console.error('Audio element error:', e);
+          setIsPlaying(false);
+        }}
+      />
+
       <div className="hidden md:block absolute left-0 top-0 bottom-24 w-72 z-50 group">
         <div className="absolute inset-0 w-12 bg-transparent z-10" />
         <div className="absolute inset-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto scrollbar-hide flex flex-col pointer-events-none group-hover:pointer-events-auto bg-white/95 border-r border-gray-200">
@@ -354,7 +363,6 @@ export default function Player() {
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden border-b border-gray-200">
         
-        {/* 중앙 본문 영역 */}
         <div 
           className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0 cursor-pointer md:cursor-default"
           onClick={() => {
@@ -387,7 +395,6 @@ export default function Player() {
                 {currentSentence}
               </div>
 
-              {/* 번역 자막 */}
               {analysis?.translation && (
                 <motion.div 
                   initial={{ opacity: 0 }}
@@ -414,7 +421,6 @@ export default function Player() {
           </AnimatePresence>
         </div>
 
-        {/* 우측 패널: 직독직해 — 데스크톱에서만 */}
         <div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
           <div className="p-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
@@ -467,7 +473,6 @@ export default function Player() {
         </div>
       </div>
 
-      {/* 🚀 모바일 해석 바텀시트 */}
       <div className="md:hidden">
         {showMobilePanel && (
           <motion.div
@@ -511,7 +516,6 @@ export default function Player() {
         )}
       </div>
 
-      {/* 하단 재생 바 */}
       <div 
         className={`
           absolute md:relative bottom-0 inset-x-0
@@ -568,7 +572,6 @@ export default function Player() {
             <SkipBack className="w-4 h-4" />
           </button>
           
-          {/* 모바일: 해석 패널 토글 버튼 */}
           <button 
             onClick={() => setShowMobilePanel(!showMobilePanel)}
             className="md:hidden p-2 text-gray-400 hover:text-black transition-colors"

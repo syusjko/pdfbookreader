@@ -1,0 +1,416 @@
+[
+  {
+    "id": 0,
+    "targets": [
+      [
+        16,
+        "click"
+      ]
+    ],
+    "inputs": [],
+    "outputs": [],
+    "backend_fn": false,
+    "js": "() => { window.open(`https://huggingface.co/spaces/hexgrad/Kokoro-TTS?duplicate=true`, '_blank') }",
+    "queue": false,
+    "api_name": "js_fn",
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 1,
+    "targets": [
+      [
+        28,
+        "click"
+      ]
+    ],
+    "inputs": [],
+    "outputs": [
+      22
+    ],
+    "backend_fn": true,
+    "js": null,
+    "queue": true,
+    "api_name": false,
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 2,
+    "targets": [
+      [
+        30,
+        "click"
+      ]
+    ],
+    "inputs": [],
+    "outputs": [
+      22
+    ],
+    "backend_fn": true,
+    "js": null,
+    "queue": true,
+    "api_name": false,
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 3,
+    "targets": [
+      [
+        31,
+        "click"
+      ]
+    ],
+    "inputs": [],
+    "outputs": [
+      22
+    ],
+    "backend_fn": true,
+    "js": null,
+    "queue": true,
+    "api_name": false,
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 4,
+    "targets": [
+      [
+        2,
+        "click"
+      ]
+    ],
+    "inputs": [
+      22,
+      24,
+      27,
+      25
+    ],
+    "outputs": [
+      1,
+      4
+    ],
+    "backend_fn": true,
+    "js": null,
+    "queue": true,
+    "api_name": false,
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 5,
+    "targets": [
+      [
+        5,
+        "click"
+      ]
+    ],
+    "inputs": [
+      22,
+      24
+    ],
+    "outputs": [
+      4
+    ],
+    "backend_fn": true,
+    "js": null,
+    "queue": true,
+    "api_name": false,
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 6,
+    "targets": [
+      [
+        12,
+        "click"
+      ]
+    ],
+    "inputs": [
+      22,
+      24,
+      27,
+      25
+    ],
+    "outputs": [
+      10
+    ],
+    "backend_fn": true,
+    "js": null,
+    "queue": true,
+    "api_name": false,
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": true,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 7,
+    "targets": [
+      [
+        13,
+        "click"
+      ]
+    ],
+    "inputs": [],
+    "outputs": [],
+    "backend_fn": false,
+    "js": null,
+    "queue": false,
+    "api_name": "unnamed",
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 8,
+    "targets": [
+      [
+        13,
+        "click"
+      ]
+    ],
+    "inputs": [],
+    "outputs": [],
+    "backend_fn": false,
+    "js": null,
+    "queue": false,
+    "api_name": "unnamed_1",
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [
+      6
+    ],
+    "types": {
+      "generator": false,
+      "cancel": true
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  },
+  {
+    "id": 9,
+    "targets": [
+      [
+        7,
+        "click"
+      ]
+    ],
+    "inputs": [
+      22,
+      24,
+      27
+    ],
+    "outputs": [
+      1
+    ],
+    "backend_fn": true,
+    "js": null,
+    "queue": true,
+    "api_name": false,
+    "scroll_to_output": false,
+    "show_progress": "full",
+    "show_progress_on": null,
+    "batch": false,
+    "max_batch_size": 4,
+    "cancels": [],
+    "types": {
+      "generator": false,
+      "cancel": false
+    },
+    "collects_event_data": false,
+    "trigger_after": null,
+    "trigger_only_on_success": false,
+    "trigger_mode": "once",
+    "show_api": false,
+    "rendered_in": null,
+    "render_id": null,
+    "connection": "sse",
+    "time_limit": null,
+    "stream_every": 0.5,
+    "like_user_message": false,
+    "event_specific_args": null,
+    "js_implementation": null
+  }
+]
