@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+import 'pdfjs-dist/build/pdf.worker.mjs';
 import { extractTextFromPdf, findStoryStartIndex, splitIntoSentences } from '../lib/pdfUtils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Loader2 } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Loader2, Headphones, Volume2, VolumeX } from 'lucide-react';
 import { useWhiteNoise, NoiseType } from './useWhiteNoise';
 
 export default function Player() {
@@ -30,6 +32,8 @@ export default function Player() {
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [showChapters, setShowChapters] = useState(false);
+  const [showNoiseMenu, setShowNoiseMenu] = useState(false);
   const [readingSpeed, setReadingSpeed] = useState(1.0); 
 
   const { noiseType, setNoiseType, volume: noiseVolume, setVolume: setNoiseVolume } = useWhiteNoise();
@@ -387,6 +391,70 @@ export default function Player() {
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-black relative overflow-hidden">
       
+      {/* Floating White Noise Menu */}
+      <div className="absolute top-4 right-4 z-50">
+        <div className="relative">
+          <button 
+            onClick={() => setShowNoiseMenu(!showNoiseMenu)}
+            className="w-10 h-10 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-sm border border-gray-200 text-gray-500 hover:text-black hover:scale-105 transition-all"
+          >
+            {noiseType === 'none' ? <VolumeX className="w-4 h-4" /> : <Headphones className="w-4 h-4 text-black" />}
+          </button>
+          
+          <AnimatePresence>
+            {showNoiseMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-12 right-0 w-48 bg-white/90 backdrop-blur-lg border border-gray-200 shadow-xl rounded-2xl p-4 flex flex-col gap-4"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold font-mono tracking-widest text-black">AMBIENCE</span>
+                  <span className="text-[9px] text-gray-400 font-mono">{noiseType === 'none' ? 'OFF' : 'ON'}</span>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  {[
+                    { id: 'none', label: '음소거' },
+                    { id: 'brown', label: '비행기 (Brown)' },
+                    { id: 'pink', label: '바람 (Pink)' },
+                    { id: 'rain', label: '잔잔한 비' },
+                    { id: 'heavy_rain', label: '거센 비' },
+                    { id: 'ocean', label: '파도 소리' },
+                    { id: 'fan', label: '선풍기' }
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setNoiseType(item.id as NoiseType)}
+                      className={`text-left text-xs font-mono py-1 transition-colors ${noiseType === item.id ? 'text-black font-bold' : 'text-gray-400 hover:text-black'}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                
+                {noiseType !== 'none' && (
+                  <div className="pt-3 border-t border-gray-100 flex items-center gap-2">
+                    <Volume2 className="w-3 h-3 text-gray-400" />
+                    <input 
+                      type="range" 
+                      min="0.01" 
+                      max="0.5" 
+                      step="0.01" 
+                      value={noiseVolume} 
+                      onChange={(e) => setNoiseVolume(parseFloat(e.target.value))}
+                      className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
+                    />
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
       <audio
         ref={audioRef}
         className="hidden"
@@ -705,31 +773,6 @@ export default function Player() {
             <option value="ko-KR">KO</option>
             <option value="ja-JP">JA</option>
           </select>
-
-          <div className="flex items-center gap-1 border-l border-gray-200 pl-2 ml-1">
-            <select 
-              value={noiseType}
-              onChange={(e) => setNoiseType(e.target.value as NoiseType)}
-              className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer appearance-none"
-            >
-              <option value="none">음소거</option>
-              <option value="brown">비행기</option>
-              <option value="pink">바람</option>
-              <option value="rain">빗소리</option>
-            </select>
-            
-            {noiseType !== 'none' && (
-              <input 
-                type="range" 
-                min="0.01" 
-                max="0.5" 
-                step="0.01" 
-                value={noiseVolume} 
-                onChange={(e) => setNoiseVolume(parseFloat(e.target.value))}
-                className="w-12 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
-              />
-            )}
-          </div>
         </div>
       </div>
     </div>
