@@ -1,416 +1,2283 @@
-[
-  {
-    "id": 0,
-    "targets": [
-      [
-        16,
-        "click"
-      ]
-    ],
-    "inputs": [],
-    "outputs": [],
-    "backend_fn": false,
-    "js": "() => { window.open(`https://huggingface.co/spaces/hexgrad/Kokoro-TTS?duplicate=true`, '_blank') }",
-    "queue": false,
-    "api_name": "js_fn",
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
+{
+  "version": "5.24.0",
+  "api_prefix": "/gradio_api",
+  "mode": "blocks",
+  "app_id": 14625242858274804000,
+  "dev_mode": false,
+  "analytics_enabled": true,
+  "components": [
+    {
+      "id": 18,
+      "type": "row",
+      "props": {
+        "variant": "default",
+        "visible": true,
+        "equal_height": false,
+        "show_progress": false,
+        "name": "row"
+      },
+      "skip_api": true,
+      "component_class_id": "724216f2707d8e99d1bf5993a957b41df582b9f858086784b9e93dca5b08e3ce",
+      "key": null
     },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
+    {
+      "id": 19,
+      "type": "markdown",
+      "props": {
+        "value": "[***Kokoro*** **is an open-weight TTS model with 82 million parameters.**](https://huggingface.co/hexgrad/Kokoro-82M)\n\nThis demo only showcases English, but you can directly use the model to access other languages.",
+        "show_label": true,
+        "rtl": false,
+        "latex_delimiters": [
+          {
+            "left": "$$",
+            "right": "$$",
+            "display": true
+          }
+        ],
+        "visible": true,
+        "elem_classes": [],
+        "sanitize_html": true,
+        "line_breaks": false,
+        "header_links": false,
+        "show_copy_button": false,
+        "container": true,
+        "name": "markdown",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "927e99ba5dda4bcd0dfe596d4d0cecdc2e0b41e7e95071a05f96ae3971390ed6",
+      "key": null,
+      "api_info": {
+        "type": "string"
+      },
+      "api_info_as_input": {
+        "type": "string"
+      },
+      "api_info_as_output": {
+        "type": "string"
+      },
+      "example_inputs": "# Hello!"
+    },
+    {
+      "id": 20,
+      "type": "row",
+      "props": {
+        "variant": "default",
+        "visible": true,
+        "equal_height": false,
+        "show_progress": false,
+        "name": "row"
+      },
+      "skip_api": true,
+      "component_class_id": "724216f2707d8e99d1bf5993a957b41df582b9f858086784b9e93dca5b08e3ce",
+      "key": null
+    },
+    {
+      "id": 21,
+      "type": "column",
+      "props": {
+        "scale": 1,
+        "min_width": 320,
+        "variant": "default",
+        "visible": true,
+        "show_progress": false,
+        "name": "column"
+      },
+      "skip_api": true,
+      "component_class_id": "2936b1d11eae2288921900031596f1dda70bc86ea3912baac685b76d520ed450",
+      "key": null
+    },
+    {
+      "id": 22,
+      "type": "textbox",
+      "props": {
+        "type": "text",
+        "lines": 1,
+        "label": "Input Text",
+        "info": "Up to ~500 characters per Generate, or 5000 characters per Stream",
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "autofocus": false,
+        "autoscroll": true,
+        "elem_classes": [],
+        "rtl": false,
+        "show_copy_button": false,
+        "submit_btn": false,
+        "stop_btn": false,
+        "name": "textbox",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "0ad8e7dd48970890cef0fb44101b5b9b5a57422fa28062cfa5b0de927e78f3dc",
+      "key": null,
+      "api_info": {
+        "type": "string"
+      },
+      "api_info_as_input": {
+        "type": "string"
+      },
+      "api_info_as_output": {
+        "type": "string"
+      },
+      "example_inputs": "Hello!!"
+    },
+    {
+      "id": 23,
+      "type": "row",
+      "props": {
+        "variant": "default",
+        "visible": true,
+        "equal_height": false,
+        "show_progress": false,
+        "name": "row"
+      },
+      "skip_api": true,
+      "component_class_id": "724216f2707d8e99d1bf5993a957b41df582b9f858086784b9e93dca5b08e3ce",
+      "key": null
+    },
+    {
+      "id": 24,
+      "type": "dropdown",
+      "props": {
+        "choices": [
+          [
+            "🇺🇸 🚺 Heart ❤️",
+            "af_heart"
+          ],
+          [
+            "🇺🇸 🚺 Bella 🔥",
+            "af_bella"
+          ],
+          [
+            "🇺🇸 🚺 Nicole 🎧",
+            "af_nicole"
+          ],
+          [
+            "🇺🇸 🚺 Aoede",
+            "af_aoede"
+          ],
+          [
+            "🇺🇸 🚺 Kore",
+            "af_kore"
+          ],
+          [
+            "🇺🇸 🚺 Sarah",
+            "af_sarah"
+          ],
+          [
+            "🇺🇸 🚺 Nova",
+            "af_nova"
+          ],
+          [
+            "🇺🇸 🚺 Sky",
+            "af_sky"
+          ],
+          [
+            "🇺🇸 🚺 Alloy",
+            "af_alloy"
+          ],
+          [
+            "🇺🇸 🚺 Jessica",
+            "af_jessica"
+          ],
+          [
+            "🇺🇸 🚺 River",
+            "af_river"
+          ],
+          [
+            "🇺🇸 🚹 Michael",
+            "am_michael"
+          ],
+          [
+            "🇺🇸 🚹 Fenrir",
+            "am_fenrir"
+          ],
+          [
+            "🇺🇸 🚹 Puck",
+            "am_puck"
+          ],
+          [
+            "🇺🇸 🚹 Echo",
+            "am_echo"
+          ],
+          [
+            "🇺🇸 🚹 Eric",
+            "am_eric"
+          ],
+          [
+            "🇺🇸 🚹 Liam",
+            "am_liam"
+          ],
+          [
+            "🇺🇸 🚹 Onyx",
+            "am_onyx"
+          ],
+          [
+            "🇺🇸 🚹 Santa",
+            "am_santa"
+          ],
+          [
+            "🇺🇸 🚹 Adam",
+            "am_adam"
+          ],
+          [
+            "🇬🇧 🚺 Emma",
+            "bf_emma"
+          ],
+          [
+            "🇬🇧 🚺 Isabella",
+            "bf_isabella"
+          ],
+          [
+            "🇬🇧 🚺 Alice",
+            "bf_alice"
+          ],
+          [
+            "🇬🇧 🚺 Lily",
+            "bf_lily"
+          ],
+          [
+            "🇬🇧 🚹 George",
+            "bm_george"
+          ],
+          [
+            "🇬🇧 🚹 Fable",
+            "bm_fable"
+          ],
+          [
+            "🇬🇧 🚹 Lewis",
+            "bm_lewis"
+          ],
+          [
+            "🇬🇧 🚹 Daniel",
+            "bm_daniel"
+          ]
+        ],
+        "value": "af_heart",
+        "type": "value",
+        "allow_custom_value": false,
+        "filterable": true,
+        "label": "Voice",
+        "info": "Quality and availability vary by language",
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "elem_classes": [],
+        "name": "dropdown",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "ab4364d7fce4d39b423da06814d2184031a9485af4e94c2e684a84bfb6e53489",
+      "key": null,
+      "api_info": {
+        "type": "string",
+        "enum": [
+          "af_heart",
+          "af_bella",
+          "af_nicole",
+          "af_aoede",
+          "af_kore",
+          "af_sarah",
+          "af_nova",
+          "af_sky",
+          "af_alloy",
+          "af_jessica",
+          "af_river",
+          "am_michael",
+          "am_fenrir",
+          "am_puck",
+          "am_echo",
+          "am_eric",
+          "am_liam",
+          "am_onyx",
+          "am_santa",
+          "am_adam",
+          "bf_emma",
+          "bf_isabella",
+          "bf_alice",
+          "bf_lily",
+          "bm_george",
+          "bm_fable",
+          "bm_lewis",
+          "bm_daniel"
+        ]
+      },
+      "api_info_as_input": {
+        "type": "string",
+        "enum": [
+          "af_heart",
+          "af_bella",
+          "af_nicole",
+          "af_aoede",
+          "af_kore",
+          "af_sarah",
+          "af_nova",
+          "af_sky",
+          "af_alloy",
+          "af_jessica",
+          "af_river",
+          "am_michael",
+          "am_fenrir",
+          "am_puck",
+          "am_echo",
+          "am_eric",
+          "am_liam",
+          "am_onyx",
+          "am_santa",
+          "am_adam",
+          "bf_emma",
+          "bf_isabella",
+          "bf_alice",
+          "bf_lily",
+          "bm_george",
+          "bm_fable",
+          "bm_lewis",
+          "bm_daniel"
+        ]
+      },
+      "api_info_as_output": {
+        "type": "string",
+        "enum": [
+          "af_heart",
+          "af_bella",
+          "af_nicole",
+          "af_aoede",
+          "af_kore",
+          "af_sarah",
+          "af_nova",
+          "af_sky",
+          "af_alloy",
+          "af_jessica",
+          "af_river",
+          "am_michael",
+          "am_fenrir",
+          "am_puck",
+          "am_echo",
+          "am_eric",
+          "am_liam",
+          "am_onyx",
+          "am_santa",
+          "am_adam",
+          "bf_emma",
+          "bf_isabella",
+          "bf_alice",
+          "bf_lily",
+          "bm_george",
+          "bm_fable",
+          "bm_lewis",
+          "bm_daniel"
+        ]
+      },
+      "example_inputs": "af_heart"
+    },
+    {
+      "id": 25,
+      "type": "dropdown",
+      "props": {
+        "choices": [
+          [
+            "ZeroGPU 🚀",
+            true
+          ],
+          [
+            "CPU 🐌",
+            false
+          ]
+        ],
+        "value": true,
+        "type": "value",
+        "allow_custom_value": false,
+        "filterable": true,
+        "label": "Hardware",
+        "info": "GPU is usually faster, but has a usage quota",
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "interactive": true,
+        "visible": true,
+        "elem_classes": [],
+        "name": "dropdown",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "ab4364d7fce4d39b423da06814d2184031a9485af4e94c2e684a84bfb6e53489",
+      "key": null,
+      "api_info": {
+        "type": "string",
+        "enum": [
+          true,
+          false
+        ]
+      },
+      "api_info_as_input": {
+        "type": "string",
+        "enum": [
+          true,
+          false
+        ]
+      },
+      "api_info_as_output": {
+        "type": "string",
+        "enum": [
+          true,
+          false
+        ]
+      },
+      "example_inputs": true
+    },
+    {
+      "id": 26,
+      "type": "form",
+      "props": {
+        "scale": 2,
+        "min_width": 320,
+        "name": "form"
+      },
+      "skip_api": true,
+      "component_class_id": "ed5cd51f569f3a7624b1709c4e7e50a5a608037f5fb82307671a5cec77e36b71",
+      "key": null
+    },
+    {
+      "id": 27,
+      "type": "slider",
+      "props": {
+        "minimum": 0.5,
+        "maximum": 2,
+        "value": 1,
+        "step": 0.1,
+        "label": "Speed",
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "visible": true,
+        "elem_classes": [],
+        "show_reset_button": true,
+        "name": "slider",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "0ac3736b4129faf84640f0058a8d346f4329c60284cd45c39454e44098df1b16",
+      "key": null,
+      "api_info": {
+        "type": "number",
+        "description": "numeric value between 0.5 and 2"
+      },
+      "api_info_as_input": {
+        "type": "number",
+        "description": "numeric value between 0.5 and 2"
+      },
+      "api_info_as_output": {
+        "type": "number",
+        "description": "numeric value between 0.5 and 2"
+      },
+      "example_inputs": 0.5
+    },
+    {
+      "id": 28,
+      "type": "button",
+      "props": {
+        "value": "🎲 Random Quote 💬",
+        "variant": "secondary",
+        "size": "lg",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 29,
+      "type": "row",
+      "props": {
+        "variant": "default",
+        "visible": true,
+        "equal_height": false,
+        "show_progress": false,
+        "name": "row"
+      },
+      "skip_api": true,
+      "component_class_id": "724216f2707d8e99d1bf5993a957b41df582b9f858086784b9e93dca5b08e3ce",
+      "key": null
+    },
+    {
+      "id": 30,
+      "type": "button",
+      "props": {
+        "value": "🥂 Gatsby 📕",
+        "variant": "secondary",
+        "size": "lg",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 31,
+      "type": "button",
+      "props": {
+        "value": "💀 Frankenstein 📗",
+        "variant": "secondary",
+        "size": "lg",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 32,
+      "type": "form",
+      "props": {
+        "scale": 0,
+        "min_width": 0,
+        "name": "form"
+      },
+      "skip_api": true,
+      "component_class_id": "ed5cd51f569f3a7624b1709c4e7e50a5a608037f5fb82307671a5cec77e36b71",
+      "key": null
+    },
+    {
+      "id": 33,
+      "type": "form",
+      "props": {
+        "scale": 0,
+        "min_width": 0,
+        "name": "form"
+      },
+      "skip_api": true,
+      "component_class_id": "ed5cd51f569f3a7624b1709c4e7e50a5a608037f5fb82307671a5cec77e36b71",
+      "key": null
+    },
+    {
+      "id": 34,
+      "type": "column",
+      "props": {
+        "scale": 1,
+        "min_width": 320,
+        "variant": "default",
+        "visible": true,
+        "show_progress": false,
+        "name": "column"
+      },
+      "skip_api": true,
+      "component_class_id": "2936b1d11eae2288921900031596f1dda70bc86ea3912baac685b76d520ed450",
+      "key": null
+    },
+    {
+      "id": 36,
+      "type": "tabs",
+      "props": {
+        "visible": true,
+        "name": "tabs"
+      },
+      "skip_api": true,
+      "component_class_id": "01bcf447b29dfcb9603af34a268077fbe3f736c3ebd52801a0497553de1b2ce6",
+      "key": null
+    },
+    {
+      "id": 37,
+      "type": "tabitem",
+      "props": {
+        "label": "Generate",
+        "visible": true,
+        "interactive": true,
+        "name": "tab"
+      },
+      "skip_api": true,
+      "component_class_id": "1c90007b1764f6020d609b76bbdbb41f90397317a32298785a60800796916496",
+      "key": null
+    },
+    {
+      "id": 1,
+      "type": "audio",
+      "props": {
+        "streamable": false,
+        "sources": [
+          "upload",
+          "microphone"
+        ],
+        "type": "numpy",
+        "label": "Output Audio",
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "interactive": false,
+        "visible": true,
+        "streaming": false,
+        "elem_classes": [],
+        "autoplay": true,
+        "show_share_button": true,
+        "editable": true,
+        "waveform_options": {
+          "waveform_color": null,
+          "waveform_progress_color": null,
+          "trim_region_color": null,
+          "show_recording_waveform": true,
+          "show_controls": false,
+          "skip_length": 5,
+          "sample_rate": 44100
+        },
+        "loop": false,
+        "recording": false,
+        "name": "audio",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "713263ccdedd03ec03a5d2b680750934ea42b1c3b327fe175d9880df63e03d99",
+      "key": null,
+      "api_info": {
+        "$defs": {
+          "FileDataMeta": {
+            "properties": {
+              "_type": {
+                "const": "gradio.FileData",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "_type"
+            ],
+            "title": "FileDataMeta",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          },
+          "is_stream": {
+            "default": false,
+            "title": "Is Stream",
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/$defs/FileDataMeta"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FileData",
+        "type": "object",
+        "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+      },
+      "api_info_as_input": {
+        "$defs": {
+          "FileDataMeta": {
+            "properties": {
+              "_type": {
+                "const": "gradio.FileData",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "_type"
+            ],
+            "title": "FileDataMeta",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          },
+          "is_stream": {
+            "default": false,
+            "title": "Is Stream",
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/$defs/FileDataMeta"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FileData",
+        "type": "object",
+        "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+      },
+      "api_info_as_output": {
+        "$defs": {
+          "FileDataMeta": {
+            "properties": {
+              "_type": {
+                "const": "gradio.FileData",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "_type"
+            ],
+            "title": "FileDataMeta",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          },
+          "is_stream": {
+            "default": false,
+            "title": "Is Stream",
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/$defs/FileDataMeta"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FileData",
+        "type": "object",
+        "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+      },
+      "example_inputs": {
+        "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+        "meta": {
+          "_type": "gradio.FileData"
+        },
+        "orig_name": "audio_sample.wav",
+        "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+      }
+    },
+    {
+      "id": 2,
+      "type": "button",
+      "props": {
+        "value": "Generate",
+        "variant": "primary",
+        "size": "lg",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 3,
+      "type": "accordion",
+      "props": {
+        "label": "Output Tokens",
+        "open": true,
+        "visible": true,
+        "name": "accordion"
+      },
+      "skip_api": true,
+      "component_class_id": "f7ca9b901f75c307c1f5ddd33f789d906d98b7f72e2885efbfaa76243b6822af",
+      "key": null
+    },
+    {
+      "id": 4,
+      "type": "textbox",
+      "props": {
+        "type": "text",
+        "lines": 1,
+        "info": "Tokens used to generate the audio, up to 510 context length.",
+        "show_label": false,
+        "container": true,
+        "min_width": 160,
+        "interactive": false,
+        "visible": true,
+        "autofocus": false,
+        "autoscroll": true,
+        "elem_classes": [],
+        "rtl": false,
+        "show_copy_button": false,
+        "submit_btn": false,
+        "stop_btn": false,
+        "name": "textbox",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "0ad8e7dd48970890cef0fb44101b5b9b5a57422fa28062cfa5b0de927e78f3dc",
+      "key": null,
+      "api_info": {
+        "type": "string"
+      },
+      "api_info_as_input": {
+        "type": "string"
+      },
+      "api_info_as_output": {
+        "type": "string"
+      },
+      "example_inputs": "Hello!!"
+    },
+    {
+      "id": 5,
+      "type": "button",
+      "props": {
+        "value": "Tokenize",
+        "variant": "secondary",
+        "size": "lg",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 6,
+      "type": "markdown",
+      "props": {
+        "value": "💡 Customize pronunciation with Markdown link syntax and /slashes/ like `[Kokoro](/kˈOkəɹO/)`\n\n💬 To adjust intonation, try punctuation `;:,.!?—…\"()“”` or stress `ˈ` and `ˌ`\n\n⬇️ Lower stress `[1 level](-1)` or `[2 levels](-2)`\n\n⬆️ Raise stress 1 level `[or](+2)` 2 levels (only works on less stressed, usually short words)",
+        "show_label": false,
+        "rtl": false,
+        "latex_delimiters": [
+          {
+            "left": "$$",
+            "right": "$$",
+            "display": true
+          }
+        ],
+        "visible": true,
+        "elem_classes": [],
+        "sanitize_html": true,
+        "line_breaks": false,
+        "header_links": false,
+        "show_copy_button": false,
+        "container": false,
+        "name": "markdown",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "927e99ba5dda4bcd0dfe596d4d0cecdc2e0b41e7e95071a05f96ae3971390ed6",
+      "key": null,
+      "api_info": {
+        "type": "string"
+      },
+      "api_info_as_input": {
+        "type": "string"
+      },
+      "api_info_as_output": {
+        "type": "string"
+      },
+      "example_inputs": "# Hello!"
+    },
+    {
+      "id": 7,
+      "type": "button",
+      "props": {
+        "value": "Predict",
+        "variant": "secondary",
+        "size": "lg",
+        "visible": false,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 8,
+      "type": "form",
+      "props": {
+        "scale": 0,
+        "min_width": 0,
+        "name": "form"
+      },
+      "skip_api": true,
+      "component_class_id": "ed5cd51f569f3a7624b1709c4e7e50a5a608037f5fb82307671a5cec77e36b71",
+      "key": null
+    },
+    {
+      "id": 38,
+      "type": "tabitem",
+      "props": {
+        "label": "Stream",
+        "visible": true,
+        "interactive": true,
+        "name": "tab"
+      },
+      "skip_api": true,
+      "component_class_id": "1c90007b1764f6020d609b76bbdbb41f90397317a32298785a60800796916496",
+      "key": null
+    },
+    {
+      "id": 10,
+      "type": "audio",
+      "props": {
+        "streamable": false,
+        "sources": [
+          "microphone"
+        ],
+        "type": "numpy",
+        "label": "Output Audio Stream",
+        "show_label": true,
+        "container": true,
+        "min_width": 160,
+        "interactive": false,
+        "visible": true,
+        "streaming": true,
+        "elem_classes": [],
+        "autoplay": true,
+        "show_share_button": true,
+        "editable": true,
+        "waveform_options": {
+          "waveform_color": null,
+          "waveform_progress_color": null,
+          "trim_region_color": null,
+          "show_recording_waveform": true,
+          "show_controls": false,
+          "skip_length": 5,
+          "sample_rate": 44100
+        },
+        "loop": false,
+        "recording": false,
+        "name": "audio",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "713263ccdedd03ec03a5d2b680750934ea42b1c3b327fe175d9880df63e03d99",
+      "key": null,
+      "api_info": {
+        "$defs": {
+          "FileDataMeta": {
+            "properties": {
+              "_type": {
+                "const": "gradio.FileData",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "_type"
+            ],
+            "title": "FileDataMeta",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          },
+          "is_stream": {
+            "default": false,
+            "title": "Is Stream",
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/$defs/FileDataMeta"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FileData",
+        "type": "object",
+        "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+      },
+      "api_info_as_input": {
+        "$defs": {
+          "FileDataMeta": {
+            "properties": {
+              "_type": {
+                "const": "gradio.FileData",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "_type"
+            ],
+            "title": "FileDataMeta",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          },
+          "is_stream": {
+            "default": false,
+            "title": "Is Stream",
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/$defs/FileDataMeta"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FileData",
+        "type": "object",
+        "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+      },
+      "api_info_as_output": {
+        "$defs": {
+          "FileDataMeta": {
+            "properties": {
+              "_type": {
+                "const": "gradio.FileData",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "_type"
+            ],
+            "title": "FileDataMeta",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size"
+          },
+          "orig_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Orig Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mime Type"
+          },
+          "is_stream": {
+            "default": false,
+            "title": "Is Stream",
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/$defs/FileDataMeta"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "FileData",
+        "type": "object",
+        "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+      },
+      "example_inputs": {
+        "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+        "meta": {
+          "_type": "gradio.FileData"
+        },
+        "orig_name": "audio_sample.wav",
+        "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+      }
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "props": {
+        "variant": "default",
+        "visible": true,
+        "equal_height": false,
+        "show_progress": false,
+        "name": "row"
+      },
+      "skip_api": true,
+      "component_class_id": "724216f2707d8e99d1bf5993a957b41df582b9f858086784b9e93dca5b08e3ce",
+      "key": null
+    },
+    {
+      "id": 12,
+      "type": "button",
+      "props": {
+        "value": "Stream",
+        "variant": "primary",
+        "size": "lg",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 13,
+      "type": "button",
+      "props": {
+        "value": "Stop",
+        "variant": "stop",
+        "size": "lg",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "51bd485a5354bcd93c72c66428b42770f71e60d8f9bb8345f6ce8a6787cd1c8f",
+      "key": null
+    },
+    {
+      "id": 14,
+      "type": "accordion",
+      "props": {
+        "label": "Note",
+        "open": true,
+        "visible": true,
+        "name": "accordion"
+      },
+      "skip_api": true,
+      "component_class_id": "f7ca9b901f75c307c1f5ddd33f789d906d98b7f72e2885efbfaa76243b6822af",
+      "key": null
+    },
+    {
+      "id": 15,
+      "type": "markdown",
+      "props": {
+        "value": "⚠️ There is an unknown Gradio bug that might yield no audio the first time you click `Stream`.\n\n✂️ Each stream is capped at 5000 characters.\n\n🚀 Want more characters? You can [use Kokoro directly](https://huggingface.co/hexgrad/Kokoro-82M#usage) or duplicate this space:",
+        "show_label": false,
+        "rtl": false,
+        "latex_delimiters": [
+          {
+            "left": "$$",
+            "right": "$$",
+            "display": true
+          }
+        ],
+        "visible": true,
+        "elem_classes": [],
+        "sanitize_html": true,
+        "line_breaks": false,
+        "header_links": false,
+        "show_copy_button": false,
+        "container": false,
+        "name": "markdown",
+        "_selectable": false
+      },
+      "skip_api": false,
+      "component_class_id": "927e99ba5dda4bcd0dfe596d4d0cecdc2e0b41e7e95071a05f96ae3971390ed6",
+      "key": null,
+      "api_info": {
+        "type": "string"
+      },
+      "api_info_as_input": {
+        "type": "string"
+      },
+      "api_info_as_output": {
+        "type": "string"
+      },
+      "example_inputs": "# Hello!"
+    },
+    {
+      "id": 16,
+      "type": "button",
+      "props": {
+        "value": "Duplicate Space",
+        "variant": "huggingface",
+        "size": "sm",
+        "visible": true,
+        "interactive": true,
+        "elem_classes": [],
+        "scale": 0,
+        "name": "button",
+        "_selectable": false
+      },
+      "skip_api": true,
+      "component_class_id": "1ada87a6f30451485b0017dcc1700b08b0359a13629199791c2ac3489391f855",
+      "key": null
+    }
+  ],
+  "css": "",
+  "connect_heartbeat": false,
+  "js": "",
+  "head": "",
+  "title": "Gradio",
+  "space_id": "hexgrad/Kokoro-TTS",
+  "enable_queue": true,
+  "show_error": false,
+  "show_api": false,
+  "is_colab": false,
+  "max_file_size": null,
+  "stylesheets": [
+    "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap"
+  ],
+  "theme": "default",
+  "protocol": "sse_v3",
+  "body_css": {
+    "body_background_fill": "white",
+    "body_text_color": "#27272a",
+    "body_background_fill_dark": "#0f0f11",
+    "body_text_color_dark": "#f4f4f5"
   },
-  {
-    "id": 1,
-    "targets": [
-      [
+  "fill_height": false,
+  "fill_width": false,
+  "theme_hash": "63194d3741d384f9f85db890247b6c0ef9e7abac0f297f40a15c59fe4baba916",
+  "pwa": true,
+  "pages": [
+    [
+      "",
+      "Home"
+    ]
+  ],
+  "page": {
+    "": {
+      "layout": {
+        "id": 17,
+        "children": [
+          {
+            "id": 18,
+            "children": [
+              {
+                "id": 19
+              }
+            ]
+          },
+          {
+            "id": 20,
+            "children": [
+              {
+                "id": 21,
+                "children": [
+                  {
+                    "id": 32,
+                    "children": [
+                      {
+                        "id": 22
+                      }
+                    ]
+                  },
+                  {
+                    "id": 23,
+                    "children": [
+                      {
+                        "id": 26,
+                        "children": [
+                          {
+                            "id": 24
+                          },
+                          {
+                            "id": 25
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": 33,
+                    "children": [
+                      {
+                        "id": 27
+                      }
+                    ]
+                  },
+                  {
+                    "id": 28
+                  },
+                  {
+                    "id": 29,
+                    "children": [
+                      {
+                        "id": 30
+                      },
+                      {
+                        "id": 31
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 34,
+                "children": [
+                  {
+                    "id": 36,
+                    "children": [
+                      {
+                        "id": 37,
+                        "children": [
+                          {
+                            "id": 1
+                          },
+                          {
+                            "id": 2
+                          },
+                          {
+                            "id": 3,
+                            "children": [
+                              {
+                                "id": 8,
+                                "children": [
+                                  {
+                                    "id": 4
+                                  }
+                                ]
+                              },
+                              {
+                                "id": 5
+                              },
+                              {
+                                "id": 6
+                              },
+                              {
+                                "id": 7
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": 38,
+                        "children": [
+                          {
+                            "id": 10
+                          },
+                          {
+                            "id": 11,
+                            "children": [
+                              {
+                                "id": 12
+                              },
+                              {
+                                "id": 13
+                              }
+                            ]
+                          },
+                          {
+                            "id": 14,
+                            "children": [
+                              {
+                                "id": 15
+                              },
+                              {
+                                "id": 16
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "components": [
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
         28,
-        "click"
-      ]
-    ],
-    "inputs": [],
-    "outputs": [
-      22
-    ],
-    "backend_fn": true,
-    "js": null,
-    "queue": true,
-    "api_name": false,
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 2,
-    "targets": [
-      [
+        29,
         30,
-        "click"
-      ]
-    ],
-    "inputs": [],
-    "outputs": [
-      22
-    ],
-    "backend_fn": true,
-    "js": null,
-    "queue": true,
-    "api_name": false,
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 3,
-    "targets": [
-      [
         31,
-        "click"
-      ]
-    ],
-    "inputs": [],
-    "outputs": [
-      22
-    ],
-    "backend_fn": true,
-    "js": null,
-    "queue": true,
-    "api_name": false,
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 4,
-    "targets": [
-      [
+        32,
+        33,
+        34,
+        36,
+        37,
+        1,
         2,
-        "click"
-      ]
-    ],
-    "inputs": [
-      22,
-      24,
-      27,
-      25
-    ],
-    "outputs": [
-      1,
-      4
-    ],
-    "backend_fn": true,
-    "js": null,
-    "queue": true,
-    "api_name": false,
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 5,
-    "targets": [
-      [
+        3,
+        4,
         5,
-        "click"
-      ]
-    ],
-    "inputs": [
-      22,
-      24
-    ],
-    "outputs": [
-      4
-    ],
-    "backend_fn": true,
-    "js": null,
-    "queue": true,
-    "api_name": false,
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 6,
-    "targets": [
-      [
-        12,
-        "click"
-      ]
-    ],
-    "inputs": [
-      22,
-      24,
-      27,
-      25
-    ],
-    "outputs": [
-      10
-    ],
-    "backend_fn": true,
-    "js": null,
-    "queue": true,
-    "api_name": false,
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": true,
-      "cancel": false
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 7,
-    "targets": [
-      [
-        13,
-        "click"
-      ]
-    ],
-    "inputs": [],
-    "outputs": [],
-    "backend_fn": false,
-    "js": null,
-    "queue": false,
-    "api_name": "unnamed",
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 8,
-    "targets": [
-      [
-        13,
-        "click"
-      ]
-    ],
-    "inputs": [],
-    "outputs": [],
-    "backend_fn": false,
-    "js": null,
-    "queue": false,
-    "api_name": "unnamed_1",
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [
-      6
-    ],
-    "types": {
-      "generator": false,
-      "cancel": true
-    },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  },
-  {
-    "id": 9,
-    "targets": [
-      [
+        6,
         7,
-        "click"
+        8,
+        38,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "dependencies": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
       ]
-    ],
-    "inputs": [
-      22,
-      24,
-      27
-    ],
-    "outputs": [
-      1
-    ],
-    "backend_fn": true,
-    "js": null,
-    "queue": true,
-    "api_name": false,
-    "scroll_to_output": false,
-    "show_progress": "full",
-    "show_progress_on": null,
-    "batch": false,
-    "max_batch_size": 4,
-    "cancels": [],
-    "types": {
-      "generator": false,
-      "cancel": false
+    }
+  },
+  "dependencies": [
+    {
+      "id": 0,
+      "targets": [
+        [
+          16,
+          "click"
+        ]
+      ],
+      "inputs": [],
+      "outputs": [],
+      "backend_fn": false,
+      "js": "() => { window.open(`https://huggingface.co/spaces/hexgrad/Kokoro-TTS?duplicate=true`, '_blank') }",
+      "queue": false,
+      "api_name": "js_fn",
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
     },
-    "collects_event_data": false,
-    "trigger_after": null,
-    "trigger_only_on_success": false,
-    "trigger_mode": "once",
-    "show_api": false,
-    "rendered_in": null,
-    "render_id": null,
-    "connection": "sse",
-    "time_limit": null,
-    "stream_every": 0.5,
-    "like_user_message": false,
-    "event_specific_args": null,
-    "js_implementation": null
-  }
-]
+    {
+      "id": 1,
+      "targets": [
+        [
+          28,
+          "click"
+        ]
+      ],
+      "inputs": [],
+      "outputs": [
+        22
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": true,
+      "api_name": false,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 2,
+      "targets": [
+        [
+          30,
+          "click"
+        ]
+      ],
+      "inputs": [],
+      "outputs": [
+        22
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": true,
+      "api_name": false,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 3,
+      "targets": [
+        [
+          31,
+          "click"
+        ]
+      ],
+      "inputs": [],
+      "outputs": [
+        22
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": true,
+      "api_name": false,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 4,
+      "targets": [
+        [
+          2,
+          "click"
+        ]
+      ],
+      "inputs": [
+        22,
+        24,
+        27,
+        25
+      ],
+      "outputs": [
+        1,
+        4
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": true,
+      "api_name": false,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 5,
+      "targets": [
+        [
+          5,
+          "click"
+        ]
+      ],
+      "inputs": [
+        22,
+        24
+      ],
+      "outputs": [
+        4
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": true,
+      "api_name": false,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 6,
+      "targets": [
+        [
+          12,
+          "click"
+        ]
+      ],
+      "inputs": [
+        22,
+        24,
+        27,
+        25
+      ],
+      "outputs": [
+        10
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": true,
+      "api_name": false,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": true,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 7,
+      "targets": [
+        [
+          13,
+          "click"
+        ]
+      ],
+      "inputs": [],
+      "outputs": [],
+      "backend_fn": false,
+      "js": null,
+      "queue": false,
+      "api_name": "unnamed",
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 8,
+      "targets": [
+        [
+          13,
+          "click"
+        ]
+      ],
+      "inputs": [],
+      "outputs": [],
+      "backend_fn": false,
+      "js": null,
+      "queue": false,
+      "api_name": "unnamed_1",
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [
+        6
+      ],
+      "types": {
+        "generator": false,
+        "cancel": true
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    },
+    {
+      "id": 9,
+      "targets": [
+        [
+          7,
+          "click"
+        ]
+      ],
+      "inputs": [
+        22,
+        24,
+        27
+      ],
+      "outputs": [
+        1
+      ],
+      "backend_fn": true,
+      "js": null,
+      "queue": true,
+      "api_name": false,
+      "scroll_to_output": false,
+      "show_progress": "full",
+      "show_progress_on": null,
+      "batch": false,
+      "max_batch_size": 4,
+      "cancels": [],
+      "types": {
+        "generator": false,
+        "cancel": false
+      },
+      "collects_event_data": false,
+      "trigger_after": null,
+      "trigger_only_on_success": false,
+      "trigger_mode": "once",
+      "show_api": false,
+      "rendered_in": null,
+      "render_id": null,
+      "connection": "sse",
+      "time_limit": null,
+      "stream_every": 0.5,
+      "like_user_message": false,
+      "event_specific_args": null,
+      "js_implementation": null
+    }
+  ],
+  "layout": {
+    "id": 17,
+    "children": [
+      {
+        "id": 18,
+        "children": [
+          {
+            "id": 19
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "children": [
+          {
+            "id": 21,
+            "children": [
+              {
+                "id": 32,
+                "children": [
+                  {
+                    "id": 22
+                  }
+                ]
+              },
+              {
+                "id": 23,
+                "children": [
+                  {
+                    "id": 26,
+                    "children": [
+                      {
+                        "id": 24
+                      },
+                      {
+                        "id": 25
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 33,
+                "children": [
+                  {
+                    "id": 27
+                  }
+                ]
+              },
+              {
+                "id": 28
+              },
+              {
+                "id": 29,
+                "children": [
+                  {
+                    "id": 30
+                  },
+                  {
+                    "id": 31
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 34,
+            "children": [
+              {
+                "id": 36,
+                "children": [
+                  {
+                    "id": 37,
+                    "children": [
+                      {
+                        "id": 1
+                      },
+                      {
+                        "id": 2
+                      },
+                      {
+                        "id": 3,
+                        "children": [
+                          {
+                            "id": 8,
+                            "children": [
+                              {
+                                "id": 4
+                              }
+                            ]
+                          },
+                          {
+                            "id": 5
+                          },
+                          {
+                            "id": 6
+                          },
+                          {
+                            "id": 7
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": 38,
+                    "children": [
+                      {
+                        "id": 10
+                      },
+                      {
+                        "id": 11,
+                        "children": [
+                          {
+                            "id": 12
+                          },
+                          {
+                            "id": 13
+                          }
+                        ]
+                      },
+                      {
+                        "id": 14,
+                        "children": [
+                          {
+                            "id": 15
+                          },
+                          {
+                            "id": 16
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "root": "https://hexgrad-kokoro-tts.hf.space",
+  "username": null
+}

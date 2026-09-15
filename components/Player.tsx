@@ -53,13 +53,6 @@ export default function Player() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playAbortRef = useRef<AbortController | null>(null);
 
-  // Pre-load voices for Web Speech API
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-    }
-  }, []);
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -81,7 +74,12 @@ export default function Player() {
       
       const frCount = (storyText.match(/[éèàùçâêîôû]/gi) || []).length;
       const koCount = (storyText.match(/[가-힣]/g) || []).length;
-      setBookLang(koCount > 50 ? 'ko-KR' : (frCount > 20 ? 'fr-FR' : 'en-US'));
+      const jaCount = (storyText.match(/[ぁ-んァ-ン一-龥]/g) || []).length;
+      
+      if (jaCount > 50) setBookLang('ja-JP');
+      else if (koCount > 50) setBookLang('ko-KR');
+      else if (frCount > 20) setBookLang('fr-FR');
+      else setBookLang('en-US');
 
       const extractedChapters: {index: number, title: string}[] = [];
       const chRegex = /^(PREMIER|DEUXI[ÈE]ME|TROISI[ÈE]ME|QUATRI[ÈE]ME|CINQUI[ÈE]ME|SIXI[ÈE]ME|SEPTI[ÈE]ME|HUITI[ÈE]ME|NEUVI[ÈE]ME|DIXI[ÈE]ME)\s+CHAPITRE|^(CHAPITRE|CHAPTER)\s*(?:[IVX]+|\d+)|^제\s*\d+\s*장/i;
@@ -104,7 +102,7 @@ export default function Player() {
       analysisCache.current = {}; 
       
       Object.values(audioCache.current).forEach(p => {
-        p.then(url => { if (url && url !== "LOCAL_TTS") URL.revokeObjectURL(url); }).catch(() => {});
+        p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
       });
       audioCache.current = {};
       activeFetches.current.clear();
@@ -175,12 +173,6 @@ export default function Player() {
     if (index in audioCache.current) return audioCache.current[index];
     if (activeFetches.current.has(index)) return Promise.resolve(null);
 
-    // If not English, Bark exhausts ZeroGPU quota too fast. We force Local TTS.
-    if (!bookLang.startsWith('en')) {
-      audioCache.current[index] = Promise.resolve("LOCAL_TTS");
-      return audioCache.current[index];
-    }
-
     activeFetches.current.add(index);
     setPrefetchStatus('Buffering AI Voice...');
     const text = sentences[index];
@@ -211,7 +203,6 @@ export default function Player() {
 
   useEffect(() => {
     if (sentences.length === 0) return;
-    if (!bookLang.startsWith('en')) return; // No need to prefetch local TTS
     
     let isCancelled = false;
     
@@ -240,12 +231,10 @@ export default function Player() {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio && bookLang.startsWith('en')) return;
-    if (sentences.length === 0) return;
+    if (!audio || sentences.length === 0) return;
 
     if (!isPlaying) {
-      if (audio) audio.pause();
-      window.speechSynthesis?.cancel();
+      audio.pause();
       playAbortRef.current?.abort();
       return;
     }
@@ -254,8 +243,6 @@ export default function Player() {
       setIsPlaying(false);
       return;
     }
-
-    window.speechSynthesis?.cancel(); // Cancel any existing speech
     
     const abortCtrl = new AbortController();
     playAbortRef.current = abortCtrl;
@@ -270,54 +257,10 @@ export default function Player() {
           throw new Error("Failed to load audio");
         }
 
-        if (blobUrl === "LOCAL_TTS") {
-          setIsAudioLoading(false);
-          const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
-          utterance.lang = bookLang;
-          utterance.rate = readingSpeed;
-          
-          const voices = window.speechSynthesis.getVoices();
-          const targetLangPrefix = bookLang.split('-')[0];
-          const targetVoices = voices.filter(v => v.lang.toLowerCase().startsWith(targetLangPrefix));
-          
-          // Try to find a high quality premium/neural voice on the user's OS
-          const premiumVoice = targetVoices.find(v => 
-            v.name.includes('Premium') || 
-            v.name.includes('Neural') || 
-            v.name.includes('Enhanced') ||
-            v.name.includes('Siri')
-          );
-          
-          if (premiumVoice) utterance.voice = premiumVoice;
-          else if (targetVoices.length > 0) utterance.voice = targetVoices[0];
-
-          utterance.onend = () => {
-            if (!abortCtrl.signal.aborted) {
-              if (isPlaying) setCurrentIndex(prev => prev + 1);
-            }
-          };
-          
-          utterance.onerror = (e) => {
-            if (e.error !== 'canceled' && e.error !== 'interrupted') {
-               console.error("SpeechSynthesis Error:", e);
-               setIsPlaying(false);
-            }
-          };
-
-          abortCtrl.signal.addEventListener('abort', () => {
-            window.speechSynthesis.cancel();
-          });
-
-          window.speechSynthesis.speak(utterance);
-          return;
-        }
-
-        if (audio) {
-          audio.src = blobUrl;
-          audio.playbackRate = readingSpeed;
-          setIsAudioLoading(false);
-          await audio.play();
-        }
+        audio.src = blobUrl;
+        audio.playbackRate = readingSpeed;
+        setIsAudioLoading(false);
+        await audio.play();
       } catch (e: any) {
         if (e.name === 'AbortError') return;
         console.error('TTS play error:', e);
@@ -337,7 +280,7 @@ export default function Player() {
   };
 
   const togglePlay = () => {
-    if (!isPlaying && audioRef.current && bookLang.startsWith('en')) {
+    if (!isPlaying && audioRef.current) {
       audioRef.current.play().catch(() => {});
     }
     setIsPlaying(prev => !prev);
@@ -359,7 +302,7 @@ export default function Player() {
             <div className="w-6 h-6 bg-black flex items-center justify-center">
               <span className="text-white text-xs font-bold">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v22</span></span>
+            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v23</span></span>
           </div>
           <a 
             href="https://aistudio.google.com/apikey" 
