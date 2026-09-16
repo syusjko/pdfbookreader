@@ -37,6 +37,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [bookLang, setBookLang] = useState('en-US');
+  const [originalLang, setOriginalLang] = useState('en-US');
   const [targetLang, setTargetLang] = useState('Korean');
 
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
@@ -88,10 +89,13 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
       const krCount = (sampleText.match(/[가-힣]/g) || []).length;
       const jpCount = (sampleText.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/g) || []).length;
       const frCount = (sampleText.match(/[éèêëàâîïôùûüçœæ]/gi) || []).length;
-      if (krCount > sampleText.length * 0.1) { setBookLang('ko-KR'); setReadingSpeed(1.0); }
-      else if (jpCount > sampleText.length * 0.1) { setBookLang('ja-JP'); setReadingSpeed(0.9); }
-      else if (frCount > sampleText.length * 0.01) { setBookLang('fr-FR'); setReadingSpeed(0.9); }
-      else { setBookLang('en-US'); setReadingSpeed(1.0); }
+      let detected = 'en-US';
+      if (krCount > sampleText.length * 0.1) { detected = 'ko-KR'; setReadingSpeed(1.0); }
+      else if (jpCount > sampleText.length * 0.1) { detected = 'ja-JP'; setReadingSpeed(0.9); }
+      else if (frCount > sampleText.length * 0.01) { detected = 'fr-FR'; setReadingSpeed(0.9); }
+      else { detected = 'en-US'; setReadingSpeed(1.0); }
+      setBookLang(detected);
+      setOriginalLang(detected);
 
       const extractedChapters: {index: number, title: string}[] = [];
       const chRegex = /^(PREMIER|DEUXI[EE]ME|TROISI[EE]ME|QUATRI[EE]ME|CINQUI[EE]ME|SIXI[EE]ME|SEPTI[EE]ME|HUITI[EE]ME|NEUVI[EE]ME|DIXI[EE]ME)\s+CHAPITRE|^(CHAPITRE|CHAPTER)\s*(?:[IVX]+|\d+)|^제\s*\d+\s*장/i;
@@ -717,9 +721,15 @@ const fetchChunk = (chunkIdx: number) => {
           
           <div className="flex flex-col items-center gap-1 relative group">
             <span className="text-[7px] text-gray-300 font-mono tracking-widest absolute -top-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">AUDIO</span>
-            <select 
-              value={bookLang} 
-              onChange={(e) => {
+            {(() => {
+              const langToCode: Record<string, string> = { 'Korean': 'ko-KR', 'English': 'en-US', 'Japanese': 'ja-JP', 'French': 'fr-FR' };
+              const codeToLabel: Record<string, string> = { 'ko-KR': 'KO', 'en-US': 'EN', 'ja-JP': 'JA', 'fr-FR': 'FR' };
+              const targetCode = langToCode[targetLang] || 'ko-KR';
+              const availableOptions = Array.from(new Set([originalLang, targetCode]));
+              return (
+                <select 
+                  value={bookLang} 
+                  onChange={(e) => {
                  const newLang = e.target.value;
                  setBookLang(newLang);
                  setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.9);
@@ -731,11 +741,12 @@ const fetchChunk = (chunkIdx: number) => {
               }}
               className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
             >
-              <option value="en-US">EN</option>
-              <option value="fr-FR">FR</option>
-              <option value="ko-KR">KO</option>
-              <option value="ja-JP">JA</option>
+              {availableOptions.map(code => (
+                <option key={code} value={code}>{codeToLabel[code]}</option>
+              ))}
             </select>
+            );
+            })()}
           </div>
           
           <div className="w-[1px] h-3 bg-gray-200" />
