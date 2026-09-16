@@ -1,13 +1,11 @@
 const fs = require("fs");
 let content = fs.readFileSync("components/Player.tsx", "utf8");
 
-// 1. Imports
 content = content.replace(
   "import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Loader2, Headphones, Volume2, VolumeX } from 'lucide-react';",
   "import { Play, Pause, SkipForward, SkipBack, UploadCloud, Key, BookOpen, Loader2, Headphones, Volume2, VolumeX, Bookmark } from 'lucide-react';"
 );
 
-// 2. Component signature
 content = content.replace(
   "export default function Player() {",
   `interface AuthPlayerProps {
@@ -21,7 +19,6 @@ content = content.replace(
 export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, initialBookmarks }: AuthPlayerProps) {`
 );
 
-// 3. States
 content = content.replace(
   "const [currentIndex, setCurrentIndex] = useState(0);",
   `const [currentIndex, setCurrentIndex] = useState(initialIndex || 0);
@@ -29,29 +26,30 @@ content = content.replace(
   const [hasLoaded, setHasLoaded] = useState(false);`
 );
 
-content = content.replace(
-  "const [apiKey, setApiKey] = useState('');",
-  "// apiKey removed"
-);
+content = content.replace("const [apiKey, setApiKey] = useState('');", "");
 
-// 4. Handle file upload to URL fetch
+// Replace handleFileUpload
 const uploadStart = content.indexOf('const handleFileUpload = async');
-const playAudioStart = content.indexOf('const playAudio = async (index: number)');
+const playAudioStart = content.indexOf('const fetchChunk = (chunkIdx: number) => {');
+
+if (uploadStart === -1 || playAudioStart === -1) {
+  console.log('Error: bounds not found', uploadStart, playAudioStart);
+  process.exit(1);
+}
+
 const newUploadLogic = `
   const loadPdfFromUrl = async () => {
     if (hasLoaded) return;
     setIsLoading(true);
     setLoadingText('서버에서 책 데이터를 가져오는 중...');
-    
     try {
       const response = await fetch(signedUrl);
-      const arrayBuffer = await response.arrayBuffer();
-      
+      const blob = await response.blob();
       setLoadingText('텍스트 분석 및 챕터 나누는 중...');
-      const extractedText = await extractTextFromPdf(arrayBuffer);
-      const split = splitIntoSentences(extractedText);
+      const text = await extractTextFromPdf(blob as File);
+      const split = splitIntoSentences(text.slice(findStoryStartIndex(text)));
       
-      const sampleText = split.slice(0, 100).join(' ');
+      const sampleText = split.slice(0, 50).join(' ');
       const krCount = (sampleText.match(/[가-힣]/g) || []).length;
       const jpCount = (sampleText.match(/[\\u3040-\\u30ff\\u3400-\\u4dbf\\u4e00-\\u9fff]/g) || []).length;
       const frCount = (sampleText.match(/[éèêëàâîïôùûüçœæ]/gi) || []).length;
@@ -62,40 +60,25 @@ const newUploadLogic = `
 
       const extractedChapters: {index: number, title: string}[] = [];
       const chRegex = /^(PREMIER|DEUXI[EE]ME|TROISI[EE]ME|QUATRI[EE]ME|CINQUI[EE]ME|SIXI[EE]ME|SEPTI[EE]ME|HUITI[EE]ME|NEUVI[EE]ME|DIXI[EE]ME)\\s+CHAPITRE|^(CHAPITRE|CHAPTER)\\s*(?:[IVX]+|\\d+)|^제\\s*\\d+\\s*장/i;
-      const romanStandalone = /^([IVXL]+)\\.?$/i;
-
       for (let i = 0; i < split.length; i++) {
-        const s = split[i].trim();
-        const match = s.match(chRegex);
-        if (match) {
-          extractedChapters.push({ index: i, title: match[0].toUpperCase() });
-        } else if (s.length < 10 && romanStandalone.test(s)) {
-          extractedChapters.push({ index: i, title: s.toUpperCase() });
-        }
+        const match = split[i].match(chRegex);
+        if (match) extractedChapters.push({ index: i, title: match[0].toUpperCase() });
       }
-      
       setChapters(extractedChapters);
       setSentences(split);
-      if (initialIndex >= split.length) {
-        setCurrentIndex(0);
-      }
+      if (initialIndex >= split.length) setCurrentIndex(0);
       setHasLoaded(true);
       setShowMobilePanel(true);
     } catch (err) {
       console.error(err);
-      alert('PDF 파싱 중 오류가 발생했습니다: ' + (err?.message || String(err)));
+      alert('오류가 발생했습니다: ' + (err.message || String(err)));
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (signedUrl && !hasLoaded) {
-      loadPdfFromUrl();
-    }
-  }, [signedUrl]);
+  useEffect(() => { if (signedUrl && !hasLoaded) loadPdfFromUrl(); }, [signedUrl]);
 
-  // Save Progress
   useEffect(() => {
     if (!hasLoaded || sentences.length === 0) return;
     const timer = setTimeout(() => {
@@ -113,30 +96,23 @@ const newUploadLogic = `
       ? bookmarks.filter(b => b !== currentIndex)
       : [...bookmarks, currentIndex];
     setBookmarks(newBookmarks);
-    
     fetch('/api/books/progress', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ book_id: bookId, bookmarks: newBookmarks })
     }).catch(console.error);
   };
-
-  `;
+`;
 
 content = content.substring(0, uploadStart) + newUploadLogic + content.substring(playAudioStart);
 
-// 5. Replace `apiKey` usages properly without breaking TS
-content = content.replace(/body: JSON\.stringify\(\{ sentences: chunk, apiKey \}\)/g, `body: JSON.stringify({ sentences: chunk, isAuth: true })`);
-content = content.replace(/body: JSON\.stringify\(\{ sentences: \[sentences\[currentIndex\]\], apiKey \}\)/g, `body: JSON.stringify({ sentences: [sentences[currentIndex]], isAuth: true })`);
-content = content.replace(/if \(apiKey\.trim\(\)\)/g, "if (true)");
-content = content.replace(/if \(!apiKey\)/g, "if (!true)");
-content = content.replace(/\[currentIndex, sentences, apiKey, cacheTrigger\]/g, "[currentIndex, sentences, cacheTrigger]");
-
-// 6. Landing page replacement (use exact indices)
+// Replace landing page safely
 const landingStart = content.indexOf('if (sentences.length === 0) {');
-const headerStart = content.indexOf('<header className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100">');
+const landingEndString = '        </main>\n      </div>\n    );\n  }';
+const landingEnd = content.indexOf(landingEndString, landingStart);
 
-const landingStr = `if (sentences.length === 0) {
+if (landingStart !== -1 && landingEnd !== -1) {
+  const replacementLanding = `if (sentences.length === 0) {
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center font-sans">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
@@ -144,16 +120,34 @@ const landingStr = `if (sentences.length === 0) {
       </div>
     );
   }`;
+  
+  content = content.substring(0, landingStart) + replacementLanding + content.substring(landingEnd + landingEndString.length);
+}
 
-// Find the main return ( which is right after the if block
-const playerUIIndex = content.indexOf('return (', landingStart + 50);
-content = content.substring(0, landingStart) + landingStr + '\n\n  ' + content.substring(playerUIIndex);
-
-
-// 7. Update title and add bookmark
+// API key exact replacements
 content = content.replace(
-  /<span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">BookReader<\/span>/,
-  `<span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">{title}</span>`
+  "body: JSON.stringify({ sentences: chunkSentences, apiKey })",
+  "body: JSON.stringify({ sentences: chunkSentences, isAuth: true })"
+);
+content = content.replace(
+  "if (sentences.length === 0 || !apiKey) return;",
+  "if (sentences.length === 0) return;"
+);
+content = content.replace(
+  "if (!apiKey || chunkIdx * CHUNK_SIZE >= sentences.length) return;",
+  "if (chunkIdx * CHUNK_SIZE >= sentences.length) return;"
+);
+
+// Fix array dependency
+content = content.replace(
+  "[currentIndex, sentences, apiKey, cacheTrigger]",
+  "[currentIndex, sentences, cacheTrigger]"
+);
+
+// Bookmark button and title
+content = content.replace(
+  '<span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">BookReader</span>',
+  '<span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">{title}</span>'
 );
 
 content = content.replace(
@@ -167,8 +161,7 @@ content = content.replace(
           </button>\n          $1`
 );
 
-// 8. window.location.reload()
 content = content.replace(/window\.location\.reload\(\)/g, "window.location.href = '/dashboard'");
 
 fs.writeFileSync("components/AuthPlayer.tsx", content);
-console.log("Done");
+console.log("Super Clean v3 Done");

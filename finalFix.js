@@ -28,29 +28,26 @@ content = content.replace(
   const [bookmarks, setBookmarks] = useState<number[]>(initialBookmarks || []);
   const [hasLoaded, setHasLoaded] = useState(false);`
 );
+content = content.replace("const [apiKey, setApiKey] = useState('');", "");
+content = content.replace(/apiKey\.trim\(\)/g, "true");
+content = content.replace(/!apiKey/g, "!true");
+content = content.replace(/apiKey\s*,?/g, "isAuth: true,");
 
-content = content.replace(
-  "const [apiKey, setApiKey] = useState('');",
-  "// apiKey removed"
-);
+// 4. Extract parts manually
+const beforeUpload = content.substring(0, content.indexOf('const handleFileUpload = async'));
+const afterUpload = content.substring(content.indexOf('const playAudio = async (index: number) => {'));
 
-// 4. Handle file upload to URL fetch
-const uploadStart = content.indexOf('const handleFileUpload = async');
-const playAudioStart = content.indexOf('const playAudio = async (index: number)');
 const newUploadLogic = `
   const loadPdfFromUrl = async () => {
     if (hasLoaded) return;
     setIsLoading(true);
     setLoadingText('서버에서 책 데이터를 가져오는 중...');
-    
     try {
       const response = await fetch(signedUrl);
       const arrayBuffer = await response.arrayBuffer();
-      
       setLoadingText('텍스트 분석 및 챕터 나누는 중...');
       const extractedText = await extractTextFromPdf(arrayBuffer);
       const split = splitIntoSentences(extractedText);
-      
       const sampleText = split.slice(0, 100).join(' ');
       const krCount = (sampleText.match(/[가-힣]/g) || []).length;
       const jpCount = (sampleText.match(/[\\u3040-\\u30ff\\u3400-\\u4dbf\\u4e00-\\u9fff]/g) || []).length;
@@ -73,29 +70,21 @@ const newUploadLogic = `
           extractedChapters.push({ index: i, title: s.toUpperCase() });
         }
       }
-      
       setChapters(extractedChapters);
       setSentences(split);
-      if (initialIndex >= split.length) {
-        setCurrentIndex(0);
-      }
+      if (initialIndex >= split.length) setCurrentIndex(0);
       setHasLoaded(true);
       setShowMobilePanel(true);
     } catch (err) {
       console.error(err);
-      alert('PDF 파싱 중 오류가 발생했습니다: ' + (err?.message || String(err)));
+      alert('오류가 발생했습니다: ' + (err.message || String(err)));
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (signedUrl && !hasLoaded) {
-      loadPdfFromUrl();
-    }
-  }, [signedUrl]);
+  useEffect(() => { if (signedUrl && !hasLoaded) loadPdfFromUrl(); }, [signedUrl]);
 
-  // Save Progress
   useEffect(() => {
     if (!hasLoaded || sentences.length === 0) return;
     const timer = setTimeout(() => {
@@ -113,44 +102,36 @@ const newUploadLogic = `
       ? bookmarks.filter(b => b !== currentIndex)
       : [...bookmarks, currentIndex];
     setBookmarks(newBookmarks);
-    
     fetch('/api/books/progress', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ book_id: bookId, bookmarks: newBookmarks })
     }).catch(console.error);
   };
+`;
 
-  `;
+content = beforeUpload + newUploadLogic + afterUpload;
 
-content = content.substring(0, uploadStart) + newUploadLogic + content.substring(playAudioStart);
-
-// 5. Replace `apiKey` usages properly without breaking TS
+// Fix remaining replacements
 content = content.replace(/body: JSON\.stringify\(\{ sentences: chunk, apiKey \}\)/g, `body: JSON.stringify({ sentences: chunk, isAuth: true })`);
 content = content.replace(/body: JSON\.stringify\(\{ sentences: \[sentences\[currentIndex\]\], apiKey \}\)/g, `body: JSON.stringify({ sentences: [sentences[currentIndex]], isAuth: true })`);
 content = content.replace(/if \(apiKey\.trim\(\)\)/g, "if (true)");
 content = content.replace(/if \(!apiKey\)/g, "if (!true)");
 content = content.replace(/\[currentIndex, sentences, apiKey, cacheTrigger\]/g, "[currentIndex, sentences, cacheTrigger]");
 
-// 6. Landing page replacement (use exact indices)
-const landingStart = content.indexOf('if (sentences.length === 0) {');
-const headerStart = content.indexOf('<header className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100">');
-
-const landingStr = `if (sentences.length === 0) {
+// Replace landing page safely using regex across multiple lines
+content = content.replace(
+  /if \(sentences\.length === 0\) \{[\s\S]*?\}\s*(?=\/\/\s*Next is the actual main Player UI|return \(\s*<div className="flex flex-col h-full w-full)/,
+  `if (sentences.length === 0) {
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center font-sans">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
         <p className="font-bold text-lg text-gray-800">{loadingText || "오디오북을 불러오는 중..."}</p>
       </div>
     );
-  }`;
+  }\n\n  `
+);
 
-// Find the main return ( which is right after the if block
-const playerUIIndex = content.indexOf('return (', landingStart + 50);
-content = content.substring(0, landingStart) + landingStr + '\n\n  ' + content.substring(playerUIIndex);
-
-
-// 7. Update title and add bookmark
 content = content.replace(
   /<span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">BookReader<\/span>/,
   `<span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">{title}</span>`
@@ -167,7 +148,6 @@ content = content.replace(
           </button>\n          $1`
 );
 
-// 8. window.location.reload()
 content = content.replace(/window\.location\.reload\(\)/g, "window.location.href = '/dashboard'");
 
 fs.writeFileSync("components/AuthPlayer.tsx", content);

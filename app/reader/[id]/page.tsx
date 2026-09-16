@@ -2,7 +2,7 @@ import { createClient } from '../../../utils/supabase/server'
 import { redirect } from 'next/navigation'
 import AuthPlayer from '../../../components/AuthPlayer'
 
-export default async function ReaderPage({ params }: { params: { id: string } }) {
+export default async function ReaderPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
