@@ -302,141 +302,141 @@ export default function Player() {
 
   if (sentences.length === 0) {
     return (
-      <div className="min-h-[100dvh] bg-white flex flex-col font-sans text-black relative overflow-hidden">
-
+      <div className="min-h-[100dvh] bg-white flex flex-col font-sans text-gray-900 overflow-x-hidden">
+        
         {/* Loading overlay */}
         {isLoading && (
-          <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-7 h-7 animate-spin text-black" />
-            <p className="font-mono text-xs uppercase tracking-widest text-black">{loadingText}</p>
-            <p className="text-[10px] text-gray-400">Depending on file size, this may take a moment.</p>
+          <div className="fixed inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <p className="font-bold text-lg text-gray-800">{loadingText}</p>
+            <p className="text-sm text-gray-500">파일 크기에 따라 시간이 걸릴 수 있습니다.</p>
           </div>
         )}
 
-        {/* ── NAV ─────────────────────────────────────────────── */}
-        <nav className="flex items-center justify-between px-5 sm:px-8 md:px-12 py-4 shrink-0">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 bg-black flex items-center justify-center rounded-sm">
-              <span className="text-white text-[11px] font-black">B</span>
+        {/* ── Top Navigation (Google Play / Millie Style) ── */}
+        <header className="sticky top-0 z-40 bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            {/* Logo area */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">BookReader</span>
+              </div>
+              
+              {/* Main Nav Links (Desktop) */}
+              <nav className="hidden md:flex items-center gap-6 ml-4">
+                <a href="#" className="text-gray-900 font-semibold border-b-2 border-blue-600 pb-5 pt-5">투데이</a>
+                <a href="#" className="text-gray-500 hover:text-gray-900 font-medium py-5">오디오북</a>
+                <a href="#" className="text-gray-500 hover:text-gray-900 font-medium py-5">AI 번역</a>
+              </nav>
             </div>
-            <span className="text-sm font-bold tracking-tight">BookReader</span>
-          </div>
 
-          {/* Nav actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <a
-              href="https://aistudio.google.com/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:block text-[10px] font-mono text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-200 rounded-full"
-            >
-              GET API KEY
-            </a>
-            <a
-              href="/auth/login"
-              className="text-[11px] font-mono text-gray-500 hover:text-black transition-colors px-3 py-1.5 border border-gray-200 rounded-full"
-            >
-              로그인
-            </a>
-            <a
-              href="/auth/login"
-              className="text-[11px] font-mono text-white bg-black hover:bg-gray-800 transition-colors px-3 py-1.5 rounded-full"
-            >
-              무료 가입
-            </a>
-          </div>
-        </nav>
-
-        {/* ── HERO ─────────────────────────────────────────────── */}
-        <main className="flex-1 flex flex-col items-center justify-center px-5 sm:px-8 md:px-16 py-6 sm:py-10">
-
-          {/* Hero text */}
-          <div className="w-full max-w-3xl text-center mb-8 sm:mb-10">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tighter leading-[0.9] mb-4 sm:mb-5">
-              READ.<br />
-              <span className="text-gray-300">TRANSLATE.</span>
-            </h1>
-            <p className="text-sm sm:text-base text-gray-500 max-w-sm sm:max-w-md mx-auto leading-relaxed">
-              PDF 업로드 한 번으로 AI가 낭독하고, 번역하고, 문장을 해체해 드립니다.
-            </p>
-          </div>
-
-          {/* Feature chips */}
-          <div className="flex flex-wrap justify-center gap-2 mb-8 sm:mb-10">
-            {['TTS', '번역', '직독직해', '챕터 탐색', '화이트 노이즈'].map((label) => (
-              <span
-                key={label}
-                className="px-3 py-1 border border-gray-200 text-[10px] sm:text-[11px] font-mono text-gray-400 rounded-full"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-
-          {/* ── UPLOAD + API KEY ── */}
-          <div className="w-full max-w-sm sm:max-w-md flex flex-col gap-3">
-
-            {/* Upload zone */}
-            <label className="flex flex-col items-center justify-center w-full h-36 sm:h-44 border-2 border-dashed border-gray-200 hover:border-black bg-gray-50 hover:bg-gray-100 cursor-pointer transition-all rounded-xl group">
-              <UploadCloud className="w-6 h-6 text-gray-300 mb-2.5 group-hover:text-black transition-colors" />
-              <p className="text-sm font-semibold text-gray-500 group-hover:text-black transition-colors">PDF 업로드</p>
-              <p className="text-[10px] text-gray-400 mt-1">클릭하거나 드래그해서 놓으세요</p>
-              <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
-            </label>
-
-            {/* API key input */}
-            <div className="flex items-center gap-3 px-4 py-3 border border-gray-200 bg-white rounded-xl">
-              <Key className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-              <input
-                type="password"
-                placeholder="Gemini API Key (선택 — 해석 기능 활성화)"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1 bg-transparent text-xs font-mono text-black placeholder:text-gray-300 outline-none"
-              />
+            {/* Right Actions */}
+            <div className="flex items-center gap-4 sm:gap-6">
+              <a href="/dashboard" className="hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">
+                <BookOpen className="w-4 h-4" />
+                <span>내 라이브러리</span>
+              </a>
+              
+              <div className="flex items-center gap-3">
+                <a href="/auth/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:block">
+                  회원가입
+                </a>
+                <a href="/auth/login" className="text-sm font-medium bg-[#333333] hover:bg-[#1a1a1a] text-white px-5 py-2.5 rounded-md transition-colors">
+                  로그인
+                </a>
+              </div>
             </div>
           </div>
+        </header>
 
-          {/* ── DIVIDER ── */}
-          <div className="relative w-full max-w-sm sm:max-w-md my-6 sm:my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-100" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-4 text-[10px] text-gray-300 font-mono">또는</span>
-            </div>
-          </div>
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          
+          {/* ── Hero Banner (Millie's Library Style) ── */}
+          <section className="relative w-full bg-gradient-to-r from-blue-700 to-indigo-800 rounded-3xl overflow-hidden shadow-xl mb-12 sm:mb-16">
+            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-8 py-12 md:p-16 gap-8">
+              
+              {/* Text Content */}
+              <div className="flex-1 text-center md:text-left text-white max-w-xl">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4 break-keep">
+                  어떤 PDF든<br />나만의 오디오북으로.
+                </h1>
+                <p className="text-blue-100 text-base sm:text-lg mb-8 leading-relaxed font-medium break-keep">
+                  파일을 업로드하면 AI가 원어민 발음으로 낭독하고,<br className="hidden md:block" />
+                  문장 구조를 분석하여 직독직해를 제공합니다.
+                </p>
+                <div className="hidden md:flex items-center gap-2 text-sm text-blue-200 bg-black/20 w-fit px-4 py-2 rounded-full backdrop-blur-sm">
+                  <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                  하루 3권 무료 분석 제공
+                </div>
+              </div>
 
-          {/* ── CTA ── */}
-          <div className="w-full max-w-sm sm:max-w-md flex flex-col sm:flex-row gap-2.5">
-            <a
-              href="/auth/login"
-              className="flex-1 flex items-center justify-center gap-2 bg-black text-white text-xs font-mono py-3 rounded-xl hover:bg-gray-800 transition-colors"
-            >
-              <span>로그인하고 내 서재 이용</span>
-              <span className="text-gray-400 text-[9px]">· 하루 3권 무료</span>
-            </a>
-            <a
-              href="/auth/login"
-              className="flex-1 flex items-center justify-center gap-2 border border-gray-200 text-gray-600 text-xs font-mono py-3 rounded-xl hover:border-black hover:text-black transition-colors"
-            >
-              구글로 1초 로그인
-            </a>
-          </div>
+              {/* Upload Card */}
+              <div className="w-full md:w-[400px] shrink-0">
+                <div className="bg-white rounded-2xl shadow-2xl p-6 transform transition-transform hover:-translate-y-1 duration-300">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">지금 바로 시작하기</h3>
+                  
+                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-blue-200 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 cursor-pointer transition-all rounded-xl group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-blue-100 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                    <UploadCloud className="w-10 h-10 text-blue-500 mb-3 transform group-hover:scale-110 transition-transform duration-300" />
+                    <p className="text-base font-bold text-blue-700 mb-1">PDF 파일 업로드</p>
+                    <p className="text-xs text-gray-500">클릭하거나 파일을 이곳에 놓으세요</p>
+                    <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Feature Icons (Millie's Library Style) ── */}
+          <section className="mb-16">
+            <div className="flex flex-wrap justify-center gap-6 sm:gap-10 md:gap-16">
+              {[
+                { icon: <Headphones className="w-6 h-6 text-indigo-600" />, label: 'AI 낭독' },
+                { icon: <BookOpen className="w-6 h-6 text-emerald-600" />, label: '직독직해' },
+                { icon: <Volume2 className="w-6 h-6 text-sky-600" />, label: '자연스러운 호흡' },
+                { icon: <SkipForward className="w-6 h-6 text-amber-600" />, label: '챕터 탐색' },
+                { icon: <UploadCloud className="w-6 h-6 text-purple-600" />, label: '무제한 업로드' },
+              ].map((feature, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-3 cursor-pointer group">
+                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100 group-hover:bg-white group-hover:shadow-md transition-all duration-300 transform group-hover:-translate-y-1">
+                    {feature.icon}
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{feature.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── API Key Input (Bottom Section) ── */}
+          <section className="max-w-2xl mx-auto bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex-1">
+                <h4 className="text-base font-bold text-gray-800 mb-1">체험판 API 키 설정</h4>
+                <p className="text-xs text-gray-500 break-keep">로그인 없이 사용하려면 Gemini API 키를 입력하세요. 분석 기능이 활성화됩니다.</p>
+              </div>
+              <div className="w-full sm:w-72 flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all shadow-sm">
+                <Key className="w-4 h-4 text-gray-400 shrink-0" />
+                <input
+                  type="password"
+                  placeholder="API Key 입력"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 outline-none w-full"
+                />
+              </div>
+            </div>
+          </section>
 
         </main>
-
-        {/* ── FOOTER ── */}
-        <footer className="flex items-center justify-between px-5 sm:px-8 md:px-12 py-4 border-t border-gray-100 shrink-0">
-          <p className="text-[9px] font-mono text-gray-300 uppercase tracking-widest">
-            Built with Next.js · AI Voices
-          </p>
-          <div className="flex items-center gap-4">
-            <a href="/dashboard" className="text-[9px] font-mono text-gray-300 hover:text-black transition-colors uppercase tracking-widest">Dashboard</a>
-          </div>
-        </footer>
-
       </div>
     );
   }
