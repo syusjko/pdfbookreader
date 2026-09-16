@@ -31,7 +31,7 @@ async function fetchGoogleNeural2Audio(text: string, tl: string): Promise<Buffer
   // Map languages to Neural2 voices
   let voiceName = 'en-US-Neural2-J'; 
   if (tl === 'fr') voiceName = 'fr-FR-Neural2-B'; // French Male Neural2
-  else if (tl === 'ko') voiceName = 'ko-KR-Neural2-C'; // Korean Male Neural2
+  else if (tl === 'ko') voiceName = 'ko-KR-Neural2-B'; // Korean Female Neural2
   else if (tl === 'ja') voiceName = 'ja-JP-Neural2-C'; // Japanese Male Neural2
 
   const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
@@ -107,12 +107,9 @@ export async function GET(req: Request) {
       
       let audioBuffer: Buffer | null = null;
       
-      if (isEnglish || tl === 'ko' || tl === 'ja') {
+      if (isEnglish) {
         // English uses TikTok
-        let voiceId = 'en_male_narration';
-        if (tl === 'ko') voiceId = 'kr_002'; // kr_002 is Female, kr_004 is Male
-        if (tl === 'ja') voiceId = 'jp_006';
-        audioBuffer = await fetchTikTokAudio(chunk.trim(), voiceId);
+        audioBuffer = await fetchTikTokAudio(chunk.trim(), 'en_male_narration');
       } else {
         // Non-English uses Google Cloud Neural2
         audioBuffer = await fetchGoogleNeural2Audio(chunk.trim(), tl);
