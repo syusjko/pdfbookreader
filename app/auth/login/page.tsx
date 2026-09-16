@@ -13,15 +13,30 @@ export default function LoginPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const handleEmailLogin = async (e: React.FormEvent, type: 'login' | 'signup') => {
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!email || !password) {
+      setErrorMsg('이메일과 비밀번호를 모두 입력해주세요.')
+      return
+    }
+    
+    if (authMode === 'signup' && password !== passwordConfirm) {
+      setErrorMsg('비밀번호가 일치하지 않습니다.')
+      return
+    }
+
     setLoading(true)
     setErrorMsg('')
     
     try {
-      if (type === 'signup') {
+      if (authMode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
+        // If confirm email is off, signUp also logs in the user automatically.
         router.push('/dashboard')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -29,7 +44,14 @@ export default function LoginPage() {
         router.push('/dashboard')
       }
     } catch (err: any) {
-      setErrorMsg(err.message)
+      // Improve error messages
+      if (err.message.includes('Anonymous')) {
+        setErrorMsg('이메일과 비밀번호를 올바르게 입력해주세요.')
+      } else if (err.message.includes('Invalid login')) {
+        setErrorMsg('이메일 또는 비밀번호가 올바르지 않습니다.')
+      } else {
+        setErrorMsg(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -59,16 +81,18 @@ export default function LoginPage() {
           alt="Reading a book" 
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Optional overlay for aesthetic */}
         <div className="absolute inset-0 bg-black/10"></div>
       </div>
 
       {/* ── Right Side: Auth Form ── */}
       <div className="w-full md:w-1/2 lg:w-2/5 flex flex-col justify-center px-8 sm:px-12 xl:px-20 relative bg-white">
         
-        {/* Back Button (Top Left of form area) */}
+        {/* Back Button */}
         <button 
-          onClick={() => router.push('/')} 
+          onClick={() => {
+            if (authMode === 'signup') setAuthMode('login')
+            else router.push('/')
+          }} 
           className="absolute top-8 left-8 text-gray-400 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm font-medium"
         >
           ← 돌아가기
@@ -78,10 +102,18 @@ export default function LoginPage() {
           
           <div className="text-center mb-10">
             <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight leading-snug">
-              나만의 오디오북 서재,<br/>BookReader
+              {authMode === 'login' ? (
+                <>나만의 오디오북 서재,<br/>BookReader</>
+              ) : (
+                <>회원가입</>
+              )}
             </h1>
             <p className="text-sm text-gray-500 mt-4 break-keep">
-              계정을 생성하고 하루 3권의<br/>무료 분석 혜택을 받아보세요.
+              {authMode === 'login' ? (
+                <>계정을 생성하고 하루 3권의<br/>무료 분석 혜택을 받아보세요.</>
+              ) : (
+                <>이메일과 비밀번호를 입력하여<br/>새로운 계정을 만드세요.</>
+              )}
             </p>
           </div>
 
@@ -91,7 +123,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleEmailAuth}>
             <div>
               <input
                 type="email"
@@ -105,50 +137,75 @@ export default function LoginPage() {
             <div>
               <input
                 type="password"
-                placeholder="비밀번호"
+                placeholder="비밀번호 (6자리 이상)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400"
                 required
+                minLength={6}
               />
             </div>
+            
+            {authMode === 'signup' && (
+              <div>
+                <input
+                  type="password"
+                  placeholder="비밀번호 확인"
+                  value={passwordConfirm}
+                  onChange={(e) => setPasswordConfirm(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400"
+                  required
+                  minLength={6}
+                />
+              </div>
+            )}
 
             <div className="pt-2 flex flex-col gap-3">
               <button
-                onClick={(e) => handleEmailLogin(e, 'login')}
+                type="submit"
                 disabled={loading}
                 className="w-full bg-[#fde047] hover:bg-[#facc15] text-gray-900 font-bold py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                이메일로 로그인
+                {authMode === 'login' ? '이메일로 로그인' : '가입하기'}
               </button>
               
               <button
-                onClick={(e) => handleEmailLogin(e, 'signup')}
+                type="button"
+                onClick={() => {
+                  setAuthMode(authMode === 'login' ? 'signup' : 'login')
+                  setErrorMsg('')
+                  setPasswordConfirm('')
+                }}
                 disabled={loading}
                 className="w-full bg-white border border-gray-200 text-gray-600 font-bold py-3.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
               >
-                새 계정 만들기
+                {authMode === 'login' ? '새 계정 만들기' : '이미 계정이 있으신가요? 로그인'}
               </button>
             </div>
           </form>
 
-          <div className="my-8 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-xs font-mono">
-              <span className="px-3 bg-white text-gray-400">또는</span>
-            </div>
-          </div>
+          {authMode === 'login' && (
+            <>
+              <div className="my-8 relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-xs font-mono">
+                  <span className="px-3 bg-white text-gray-400">또는</span>
+                </div>
+              </div>
 
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 font-medium py-3.5 rounded-xl hover:bg-gray-50 transition-colors"
-          >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-            구글 계정으로 계속하기
-          </button>
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 font-medium py-3.5 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                구글 계정으로 계속하기
+              </button>
+            </>
+          )}
           
         </div>
       </div>
