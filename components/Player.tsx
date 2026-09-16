@@ -302,79 +302,141 @@ export default function Player() {
 
   if (sentences.length === 0) {
     return (
-      <div className="min-h-screen bg-white flex flex-col font-sans text-black relative">
+      <div className="min-h-[100dvh] bg-white flex flex-col font-sans text-black relative overflow-hidden">
+
+        {/* Loading overlay */}
         {isLoading && (
-          <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center">
-             <Loader2 className="w-8 h-8 animate-spin mb-4 text-black" />
-             <p className="font-mono text-sm uppercase tracking-widest text-black">{loadingText}</p>
-             <p className="text-[10px] text-gray-400 mt-2">Depending on the size, this may take a moment.</p>
+          <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-7 h-7 animate-spin text-black" />
+            <p className="font-mono text-xs uppercase tracking-widest text-black">{loadingText}</p>
+            <p className="text-[10px] text-gray-400">Depending on file size, this may take a moment.</p>
           </div>
         )}
-        
-        <nav className="flex items-center justify-between px-6 md:px-8 py-5 md:py-6 border-b border-gray-200 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-black flex items-center justify-center">
-              <span className="text-white text-xs font-bold">B</span>
+
+        {/* ── NAV ─────────────────────────────────────────────── */}
+        <nav className="flex items-center justify-between px-5 sm:px-8 md:px-12 py-4 shrink-0">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 bg-black flex items-center justify-center rounded-sm">
+              <span className="text-white text-[11px] font-black">B</span>
             </div>
-            <span className="text-base font-bold tracking-tight">BookReader <span className="text-xs text-gray-400 font-mono">v23</span></span>
+            <span className="text-sm font-bold tracking-tight">BookReader</span>
           </div>
-          <a 
-            href="https://aistudio.google.com/apikey" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-xs font-mono text-gray-500 hover:text-black transition-colors"
-          >
-            [ GET_API_KEY ]
-          </a>
+
+          {/* Nav actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <a
+              href="https://aistudio.google.com/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:block text-[10px] font-mono text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-200 rounded-full"
+            >
+              GET API KEY
+            </a>
+            <a
+              href="/auth/login"
+              className="text-[11px] font-mono text-gray-500 hover:text-black transition-colors px-3 py-1.5 border border-gray-200 rounded-full"
+            >
+              로그인
+            </a>
+            <a
+              href="/auth/login"
+              className="text-[11px] font-mono text-white bg-black hover:bg-gray-800 transition-colors px-3 py-1.5 rounded-full"
+            >
+              무료 가입
+            </a>
+          </div>
         </nav>
 
-        <main className="flex-1 overflow-y-auto flex flex-col px-6 py-10">
-          <div className="m-auto w-full flex flex-col items-center justify-center max-w-2xl">
-            <div className="text-center mb-12 md:mb-16">
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-4 md:mb-6">
-                READ.<br />
-                <span className="text-gray-400">TRANSLATE.</span>
-              </h1>
-              <p className="text-sm md:text-base text-gray-600 max-w-md mx-auto">
-                PDF 문서를 업로드하면 기계가 문장을 소리 내어 읽고, 구조를 해체하여 직독직해를 제공합니다.
-              </p>
-            </div>
+        {/* ── HERO ─────────────────────────────────────────────── */}
+        <main className="flex-1 flex flex-col items-center justify-center px-5 sm:px-8 md:px-16 py-6 sm:py-10">
 
-            <div className="flex flex-wrap justify-center gap-2 mb-10 md:mb-12">
-              {['TEXT-TO-SPEECH', 'TRANSLATION', 'SYNTAX-ANALYSIS', 'CHAPTER-NAV'].map((label) => (
-                <div key={label} className="px-3 py-1 border border-gray-300 text-[10px] md:text-xs font-mono text-gray-500 uppercase tracking-wider">
-                  {label}
-                </div>
-              ))}
-            </div>
+          {/* Hero text */}
+          <div className="w-full max-w-3xl text-center mb-8 sm:mb-10">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tighter leading-[0.9] mb-4 sm:mb-5">
+              READ.<br />
+              <span className="text-gray-300">TRANSLATE.</span>
+            </h1>
+            <p className="text-sm sm:text-base text-gray-500 max-w-sm sm:max-w-md mx-auto leading-relaxed">
+              PDF 업로드 한 번으로 AI가 낭독하고, 번역하고, 문장을 해체해 드립니다.
+            </p>
+          </div>
 
-            <div className="w-full max-w-md space-y-3 pb-8">
-              <label className="flex flex-col items-center justify-center w-full h-40 md:h-48 border border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors group">
-                <div className="flex flex-col items-center text-center px-4">
-                  <UploadCloud className="w-6 h-6 text-black mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                  <p className="text-sm font-semibold text-black mb-1">UPLOAD PDF</p>
-                  <p className="text-[10px] md:text-xs text-gray-500">Click or drag and drop</p>
-                </div>
-                <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
-              </label>
+          {/* Feature chips */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8 sm:mb-10">
+            {['TTS', '번역', '직독직해', '챕터 탐색', '화이트 노이즈'].map((label) => (
+              <span
+                key={label}
+                className="px-3 py-1 border border-gray-200 text-[10px] sm:text-[11px] font-mono text-gray-400 rounded-full"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
 
-              <div className="flex items-center gap-3 px-4 py-3 border border-gray-300 bg-white">
-                <Key className="w-4 h-4 text-gray-400 shrink-0" />
-                <input 
-                  type="password" 
-                  placeholder="Enter API Key (Optional)" 
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="flex-1 bg-transparent text-sm font-mono text-black placeholder:text-gray-400 outline-none"
-                />
-              </div>
+          {/* ── UPLOAD + API KEY ── */}
+          <div className="w-full max-w-sm sm:max-w-md flex flex-col gap-3">
+
+            {/* Upload zone */}
+            <label className="flex flex-col items-center justify-center w-full h-36 sm:h-44 border-2 border-dashed border-gray-200 hover:border-black bg-gray-50 hover:bg-gray-100 cursor-pointer transition-all rounded-xl group">
+              <UploadCloud className="w-6 h-6 text-gray-300 mb-2.5 group-hover:text-black transition-colors" />
+              <p className="text-sm font-semibold text-gray-500 group-hover:text-black transition-colors">PDF 업로드</p>
+              <p className="text-[10px] text-gray-400 mt-1">클릭하거나 드래그해서 놓으세요</p>
+              <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
+            </label>
+
+            {/* API key input */}
+            <div className="flex items-center gap-3 px-4 py-3 border border-gray-200 bg-white rounded-xl">
+              <Key className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+              <input
+                type="password"
+                placeholder="Gemini API Key (선택 — 해석 기능 활성화)"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="flex-1 bg-transparent text-xs font-mono text-black placeholder:text-gray-300 outline-none"
+              />
             </div>
           </div>
+
+          {/* ── DIVIDER ── */}
+          <div className="relative w-full max-w-sm sm:max-w-md my-6 sm:my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-100" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-4 text-[10px] text-gray-300 font-mono">또는</span>
+            </div>
+          </div>
+
+          {/* ── CTA ── */}
+          <div className="w-full max-w-sm sm:max-w-md flex flex-col sm:flex-row gap-2.5">
+            <a
+              href="/auth/login"
+              className="flex-1 flex items-center justify-center gap-2 bg-black text-white text-xs font-mono py-3 rounded-xl hover:bg-gray-800 transition-colors"
+            >
+              <span>로그인하고 내 서재 이용</span>
+              <span className="text-gray-400 text-[9px]">· 하루 3권 무료</span>
+            </a>
+            <a
+              href="/auth/login"
+              className="flex-1 flex items-center justify-center gap-2 border border-gray-200 text-gray-600 text-xs font-mono py-3 rounded-xl hover:border-black hover:text-black transition-colors"
+            >
+              구글로 1초 로그인
+            </a>
+          </div>
+
         </main>
 
-        <footer className="text-center py-5 border-t border-gray-200 shrink-0">
-          <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Built with Next.js · Powered by AI Voices</p>
+        {/* ── FOOTER ── */}
+        <footer className="flex items-center justify-between px-5 sm:px-8 md:px-12 py-4 border-t border-gray-100 shrink-0">
+          <p className="text-[9px] font-mono text-gray-300 uppercase tracking-widest">
+            Built with Next.js · AI Voices
+          </p>
+          <div className="flex items-center gap-4">
+            <a href="/dashboard" className="text-[9px] font-mono text-gray-300 hover:text-black transition-colors uppercase tracking-widest">Dashboard</a>
+          </div>
         </footer>
+
       </div>
     );
   }
