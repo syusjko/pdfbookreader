@@ -81,7 +81,7 @@ export default function UploadButton({ variant = 'default' }: UploadButtonProps)
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="flex items-center gap-2.5 bg-gray-900 hover:bg-gray-800 text-white px-8 py-3.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
+          className="flex items-center gap-2.5 bg-black hover:bg-gray-800 text-white px-8 py-3.5 rounded-sm border border-black text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
         >
           {isUploading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -106,7 +106,7 @@ export default function UploadButton({ variant = 'default' }: UploadButtonProps)
       <button
         onClick={() => fileInputRef.current?.click()}
         disabled={isUploading}
-        className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+        className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-4 sm:px-5 py-2.5 rounded-sm border border-black text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
       >
         {isUploading ? (
           <Loader2 className="w-4 h-4 animate-spin" />

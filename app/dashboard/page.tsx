@@ -28,28 +28,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* ── Quick Actions (Millie Feature Icons Style) ── */}
-      <section className="mb-12">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          {[
-            { icon: <UploadCloud className="w-6 h-6 text-blue-600" />, label: 'PDF 업로드', desc: '새 책 추가', isUpload: true },
-            { icon: <Headphones className="w-6 h-6 text-indigo-600" />, label: 'AI 낭독', desc: '듣기 시작' },
-            { icon: <Languages className="w-6 h-6 text-emerald-600" />, label: '번역 듣기', desc: '다국어 지원' },
-            { icon: <BookOpen className="w-6 h-6 text-amber-600" />, label: '직독직해', desc: '문장 분석' },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center gap-2.5 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group"
-            >
-              <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:scale-105 transition-transform">
-                {item.icon}
-              </div>
-              <span className="text-sm font-semibold text-gray-800">{item.label}</span>
-              <span className="text-[11px] text-gray-400">{item.desc}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      
 
       {/* ── My Library Section ── */}
       <section>
@@ -63,7 +42,7 @@ export default async function DashboardPage() {
 
         {(!books || books.length === 0) ? (
           /* ── Empty State ── */
-          <div className="bg-white border border-gray-100 border-dashed rounded-2xl flex flex-col items-center justify-center py-20 px-6">
+          <div className="bg-white border border-gray-100 border-dashed rounded-sm flex flex-col items-center justify-center py-20 px-6">
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-5">
               <BookOpen className="w-9 h-9 text-gray-300" />
             </div>
@@ -80,11 +59,11 @@ export default async function DashboardPage() {
             {books.map((book) => (
               <Link href={`/reader/${book.id}`} key={book.id} className="group flex flex-col">
                 {/* Cover */}
-                <div className="relative aspect-[2/3] w-full bg-white rounded-xl overflow-hidden mb-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)] group-hover:shadow-lg transition-all duration-300 group-hover:-translate-y-1">
+                <div className="relative aspect-[2/3] w-full bg-white rounded-sm overflow-hidden mb-3 border border-gray-200 shadow-none group-hover:shadow-lg transition-all duration-300 group-hover:-translate-y-1">
                   {book.cover_url ? (
                     <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 via-white to-blue-50 p-5 text-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#f7f7f7] border border-gray-200 p-5 text-center">
                       <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                         <BookOpen className="w-5 h-5 text-gray-400" />
                       </div>
@@ -103,7 +82,7 @@ export default async function DashboardPage() {
 
                 {/* Info */}
                 <div className="px-0.5">
-                  <h3 className="text-[13px] font-semibold text-gray-800 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-sm font-serif font-bold tracking-tight text-gray-800 line-clamp-2 leading-tight group-hover:text-black underline-offset-2 hover:underline transition-colors">
                     {book.title}
                   </h3>
                   <div className="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400">

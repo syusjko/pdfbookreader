@@ -17,7 +17,7 @@ export default async function DashboardLayout({
   const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-sans">
+    <div className="min-h-screen bg-white font-sans">
       <div className="flex min-h-screen">
         {/* Left Sidebar */}
         <Sidebar userEmail={user.email || ''} userName={userName} />

@@ -30,14 +30,14 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
           <Menu className="w-5 h-5" />
         </button>
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#333] rounded-lg flex items-center justify-center">
+          <div className="w-7 h-7 bg-black rounded-sm flex items-center justify-center">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
           <span className="text-base font-bold text-gray-900 tracking-tight">BookReader</span>
         </Link>
         <button
           onClick={() => setProfileOpen(!profileOpen)} 
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xs font-bold shadow-sm"
+          className="w-8 h-8 rounded-full bg-black text-white border border-gray-800 flex items-center justify-center text-white text-xs font-bold shadow-sm"
         >
           {userName.charAt(0).toUpperCase()}
         </button>
@@ -59,7 +59,7 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-50">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#333] rounded-lg flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 bg-black rounded-sm flex items-center justify-center shadow-sm">
               <BookOpen className="w-[18px] h-[18px] text-white" />
             </div>
             <span className="text-lg font-bold text-gray-900 tracking-tight">BookReader</span>
@@ -80,9 +80,9 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
+                  flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-medium transition-all duration-200
                   ${active 
-                    ? 'bg-gray-900 text-white shadow-sm' 
+                    ? 'bg-black text-white shadow-sm' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }
                 `}
@@ -99,7 +99,7 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
           <Link
             href="/dashboard"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200"
+            className="flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200"
           >
             <Settings className="w-[18px] h-[18px] text-gray-400" />
             설정
@@ -111,9 +111,9 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
           <div className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-sm hover:bg-gray-50 transition-colors"
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-black text-white border border-gray-800 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
                 {userName.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0 text-left">
@@ -125,7 +125,7 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
 
             {/* Profile Dropdown */}
             {profileOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-10">
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-sm shadow-lg overflow-hidden z-10">
                 <div className="px-4 py-3 border-b border-gray-50">
                   <p className="text-xs text-gray-400">로그인 계정</p>
                   <p className="text-sm font-medium text-gray-800 truncate mt-0.5">{userEmail}</p>
@@ -142,7 +142,7 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
                 </div>
                 <div className="border-t border-gray-50 py-1">
                   <form action="/auth/logout" method="post">
-                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-black font-bold hover:bg-gray-100 transition-colors">
                       <LogOut className="w-4 h-4" />
                       로그아웃
                     </button>
