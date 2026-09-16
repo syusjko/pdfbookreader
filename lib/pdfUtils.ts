@@ -26,8 +26,9 @@ export async function extractTextFromPdf(file: File): Promise<string> {
       
       // If Y changes significantly, it's a new line
       if (lastY !== -1 && Math.abs(y - lastY) > 4) {
-        // If it's a large gap (e.g. between Chapter title and body), treat as paragraph break
-        if (Math.abs(y - lastY) > 15) {
+        // If it's a large gap (e.g. between Chapter title and body), treat as paragraph break.
+        // Normal line height is around 12-18. A gap of > 25 usually means a new paragraph or title.
+        if (Math.abs(y - lastY) > 25) {
           pageText += '\n\n';
         } else {
           pageText += '\n';
