@@ -68,36 +68,74 @@ interface Segment {
   pauseAfterMs: number;
 }
 
-function splitIntoPauseSegments(sentence: string): Segment[] {
+function splitIntoPauseSegments(sentence: string, isNonEnglish: boolean): Segment[] {
   const segments: Segment[] = [];
 
-  // Split at strong pause markers first (em dash, colon, semicolon)
-  // then at weaker markers (comma).
-  // Regex splits but keeps the delimiter character.
-  const parts = sentence.split(/([,;:\u2014\u2013])/g);
+  // ── Step 1: Split at punctuation pause markers ──────────────────────────
+  const parts = sentence.split(/([,;:\u2014\u2013«»])/g);
 
   let current = '';
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
-    if (/^[,;:\u2014\u2013]$/.test(part)) {
-      // This is a delimiter
+    if (/^[,;:\u2014\u2013«»]$/.test(part)) {
       current += part;
       const isStrong = /[;:\u2014\u2013]/.test(part);
       const pauseMs = isStrong ? 320 : 220;
       if (current.trim().length > 0) {
-        segments.push({ text: current.trim(), pauseAfterMs: pauseMs });
+        // ── Step 2: For non-English, further break each phrase into breath groups ─
+        if (isNonEnglish) {
+          const breathGroups = splitIntoBreathGroups(current.trim());
+          for (let j = 0; j < breathGroups.length; j++) {
+            const isLast = j === breathGroups.length - 1;
+            segments.push({
+              text: breathGroups[j],
+              pauseAfterMs: isLast ? pauseMs : 130 // micro-pause between breath groups
+            });
+          }
+        } else {
+          segments.push({ text: current.trim(), pauseAfterMs: pauseMs });
+        }
       }
       current = '';
     } else {
       current += part;
     }
   }
-  // Remaining text (no trailing pause – the 400ms onEnded gap handles end-of-sentence)
+
   if (current.trim().length > 0) {
-    segments.push({ text: current.trim(), pauseAfterMs: 0 });
+    if (isNonEnglish) {
+      const breathGroups = splitIntoBreathGroups(current.trim());
+      for (let j = 0; j < breathGroups.length; j++) {
+        const isLast = j === breathGroups.length - 1;
+        segments.push({
+          text: breathGroups[j],
+          pauseAfterMs: isLast ? 0 : 130
+        });
+      }
+    } else {
+      segments.push({ text: current.trim(), pauseAfterMs: 0 });
+    }
   }
 
   return segments;
+}
+
+// ─── Breath-group splitter ─────────────────────────────────────────────────
+// Splits a phrase into natural breath groups of ~4 words each.
+// This simulates the "ta-ra-ran / ta-ran / tan" rhythm of a real narrator.
+function splitIntoBreathGroups(phrase: string): string[] {
+  const words = phrase.trim().split(/\s+/);
+  if (words.length <= 4) return [phrase]; // Short enough — no split needed
+
+  const groups: string[] = [];
+  const TARGET = 4; // words per breath group
+
+  for (let i = 0; i < words.length; i += TARGET) {
+    const slice = words.slice(i, i + TARGET).join(' ');
+    if (slice.trim()) groups.push(slice.trim());
+  }
+
+  return groups;
 }
 
 // ─── TTS chunk fetcher ─────────────────────────────────────────────────────
@@ -139,8 +177,9 @@ export async function GET(req: Request) {
     else if (tl === 'ko') voice = 'kr_004';
     else if (tl === 'ja') voice = 'jp_006';
 
+    const isNonEnglish = tl !== 'en';
     const buffers: Buffer[] = [];
-    const segments = splitIntoPauseSegments(text);
+    const segments = splitIntoPauseSegments(text, isNonEnglish);
 
     // Keep sub-segments under 180 chars for TikTok API
     const MAX_CHUNK = 175;
