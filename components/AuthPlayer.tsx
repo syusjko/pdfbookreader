@@ -647,7 +647,7 @@ const fetchChunk = (chunkIdx: number) => {
               </div>
             ) : null}
           </div>
-        </div>
+        </div>)}
       </div>
 
       <div 
