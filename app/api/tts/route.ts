@@ -107,9 +107,12 @@ export async function GET(req: Request) {
       
       let audioBuffer: Buffer | null = null;
       
-      if (isEnglish) {
+      if (isEnglish || tl === 'ko' || tl === 'ja') {
         // English uses TikTok
-        audioBuffer = await fetchTikTokAudio(chunk.trim(), 'en_male_narration');
+        let voiceId = 'en_male_narration';
+        if (tl === 'ko') voiceId = 'kr_002'; // kr_002 is Female, kr_004 is Male
+        if (tl === 'ja') voiceId = 'jp_006';
+        audioBuffer = await fetchTikTokAudio(chunk.trim(), voiceId);
       } else {
         // Non-English uses Google Cloud Neural2
         audioBuffer = await fetchGoogleNeural2Audio(chunk.trim(), tl);
