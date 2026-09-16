@@ -72,7 +72,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex w-full bg-white font-sans overflow-hidden">
+    <div className="h-[100dvh] overflow-y-auto flex w-full bg-white font-sans">
       
       {/* ── Left Side: Cover Image (Hidden on Mobile) ── */}
       <div className="hidden md:flex md:w-1/2 lg:w-3/5 relative bg-white border-r border-gray-200">
@@ -93,14 +93,14 @@ export default function LoginPage() {
             if (authMode === 'signup') setAuthMode('login')
             else router.push('/')
           }} 
-          className="absolute top-8 left-8 text-gray-400 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm font-medium"
+          className="absolute top-5 sm:top-8 left-5 sm:left-8 text-gray-400 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm font-medium"
         >
           ← 돌아가기
         </button>
 
-        <div className="w-full max-w-[340px] mx-auto mt-12 md:mt-0">
+        <div className="w-full max-w-[340px] mx-auto mt-16 md:mt-0">
           
-          <div className="text-center mb-10">
+          <div className="text-center mb-6 sm:mb-10">
             <h1 className="text-2xl font-serif font-extrabold text-black tracking-tight leading-snug">
               {authMode === 'login' ? (
                 <>나만의 오디오북 서재,<br/>BookReader</>
@@ -130,7 +130,7 @@ export default function LoginPage() {
                 placeholder="이메일 주소"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
+                className="w-full px-4 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
                 required
               />
             </div>
@@ -140,7 +140,7 @@ export default function LoginPage() {
                 placeholder="비밀번호 (6자리 이상)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
+                className="w-full px-4 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
                 required
                 minLength={6}
               />
@@ -153,7 +153,7 @@ export default function LoginPage() {
                   placeholder="비밀번호 확인"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
+                  className="w-full px-4 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
                   required
                   minLength={6}
                 />
@@ -164,7 +164,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3.5 rounded-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-black hover:bg-gray-800 text-white font-bold py-2.5 sm:py-3.5 rounded-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {authMode === 'login' ? '이메일로 로그인' : '가입하기'}
@@ -178,7 +178,7 @@ export default function LoginPage() {
                   setPasswordConfirm('')
                 }}
                 disabled={loading}
-                className="w-full bg-white border border-gray-300 text-black font-bold py-3.5 rounded-sm hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
+                className="w-full bg-white border border-gray-300 text-black font-bold py-2.5 sm:py-3.5 rounded-sm hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
               >
                 {authMode === 'login' ? '새 계정 만들기' : '이미 계정이 있으신가요? 로그인'}
               </button>
@@ -187,7 +187,7 @@ export default function LoginPage() {
 
           {authMode === 'login' && (
             <>
-              <div className="my-8 relative">
+              <div className="my-6 sm:my-8 relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
@@ -199,7 +199,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-black font-medium py-3.5 rounded-sm hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-black font-medium py-2.5 sm:py-3.5 rounded-sm hover:bg-gray-50 transition-colors"
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
                 구글 계정으로 계속하기

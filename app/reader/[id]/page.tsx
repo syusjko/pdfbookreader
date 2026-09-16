@@ -35,7 +35,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div className="w-full h-screen bg-white">
+    <div className="w-full h-[100dvh] bg-white">
       <AuthPlayer 
         bookId={book.id}
         title={book.title}

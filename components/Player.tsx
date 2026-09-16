@@ -302,7 +302,7 @@ export default function Player() {
 
   if (sentences.length === 0) {
     return (
-      <div className="min-h-[100dvh] bg-white flex flex-col font-sans text-gray-900 overflow-x-hidden">
+      <div className="h-[100dvh] overflow-y-auto bg-white flex flex-col font-sans text-gray-900 overflow-x-hidden">
         
         {/* Loading overlay */}
         {isLoading && (
@@ -353,20 +353,20 @@ export default function Player() {
           </div>
         </header>
 
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-12 flex flex-col justify-center">
           
           {/* ── Hero Banner (Millie's Library Style) ── */}
-          <section className="relative w-full bg-black rounded-3xl overflow-hidden shadow-xl mb-12 sm:mb-16">
+          <section className="relative w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl mb-6 sm:mb-16">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
             
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-8 py-12 md:p-16 gap-8">
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-6 py-8 md:p-16 gap-6 sm:gap-8">
               
               {/* Text Content */}
               <div className="flex-1 text-center md:text-left text-white max-w-xl">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4 break-keep">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-3 sm:mb-4 break-keep">
                   어떤 PDF든<br />나만의 오디오북으로.
                 </h1>
-                <p className="text-gray-300 text-base sm:text-lg mb-8 leading-relaxed font-medium break-keep">
+                <p className="text-gray-300 text-sm sm:text-lg mb-6 sm:mb-8 leading-relaxed font-medium break-keep">
                   파일을 업로드하면 AI가 원어민 발음으로 낭독하고,<br className="hidden md:block" />
                   문장 구조를 분석하여 직독직해를 제공합니다.
                 </p>
@@ -380,7 +380,7 @@ export default function Player() {
                 <div className="bg-white rounded-2xl shadow-2xl p-6 transform transition-transform hover:-translate-y-1 duration-300">
                   <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">지금 바로 시작하기</h3>
                   
-                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 hover:border-black bg-gray-50/50 hover:bg-gray-50 cursor-pointer transition-all rounded-xl group relative overflow-hidden">
+                  <label className="flex flex-col items-center justify-center w-full h-36 sm:h-48 border-2 border-dashed border-gray-300 hover:border-black bg-gray-50/50 hover:bg-gray-50 cursor-pointer transition-all rounded-xl group relative overflow-hidden">
                     <div className="absolute inset-0 bg-gray-200 opacity-0 group-hover:opacity-20 transition-opacity"></div>
                     <UploadCloud className="w-10 h-10 text-black mb-3 transform group-hover:scale-110 transition-transform duration-300" />
                     <p className="text-base font-bold text-black mb-1">PDF 파일 업로드</p>
@@ -395,7 +395,7 @@ export default function Player() {
           
 
           {/* ── API Key Input (Bottom Section) ── */}
-          <section className="max-w-2xl mx-auto bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100">
+          <section className="max-w-2xl mx-auto w-full bg-gray-50 rounded-2xl p-4 sm:p-8 border border-gray-100 mt-auto sm:mt-0">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex-1">
                 <h4 className="text-base font-bold text-gray-800 mb-1">체험판 API 키 설정</h4>
