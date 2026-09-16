@@ -2,6 +2,7 @@ import { createClient } from '../../utils/supabase/server'
 import Link from 'next/link'
 import { BookOpen, Clock, MoreVertical, Plus, UploadCloud, Headphones, Languages } from 'lucide-react'
 import UploadButton from './UploadButton'
+import BookList from './BookList'
 
 export default async function DashboardPage() {
   const supabase = await createClient()

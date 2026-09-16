@@ -41,7 +41,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   const [targetLang, setTargetLang] = useState('Korean');
 
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
-  const [showMobilePanel, setShowMobilePanel] = useState(false);
+  const [showSyntaxPanel, setShowSyntaxPanel] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [showChapters, setShowChapters] = useState(false);
   const [showNoiseMenu, setShowNoiseMenu] = useState(false);
@@ -106,8 +106,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
       setSentences(split);
       if (initialIndex >= split.length) setCurrentIndex(0);
       setHasLoaded(true);
-      setShowMobilePanel(true);
-    } catch (err: any) {
+          } catch (err: any) {
       console.error(err);
       alert('오류가 발생했습니다: ' + (err.message || String(err)));
     } finally {
@@ -370,6 +369,13 @@ const fetchChunk = (chunkIdx: number) => {
       {/* Top Right Buttons */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
         <button 
+          onClick={() => setShowSyntaxPanel(!showSyntaxPanel)}
+          className={`hidden md:flex w-10 h-10 items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-sm border ${showSyntaxPanel ? 'border-black text-black' : 'border-gray-200 text-gray-500'} hover:text-black hover:scale-105 transition-all`}
+          title="구문 분석 창 열기/닫기"
+        >
+          <BookOpen className="w-4 h-4" />
+        </button>
+        <button 
           onClick={toggleBookmark}
           className={`w-10 h-10 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-sm border ${bookmarks.includes(currentIndex) ? 'border-yellow-400 text-yellow-500' : 'border-gray-200 text-gray-500'} hover:text-black hover:scale-105 transition-all`}
           title="북마크"
@@ -490,7 +496,7 @@ const fetchChunk = (chunkIdx: number) => {
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden border-b border-gray-200">
         
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${showMobilePanel ? 'h-[40vh] md:h-full' : 'h-full'}`}>
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${showSyntaxPanel ? 'h-[40vh] md:h-full' : 'h-full'}`}>
           <div 
             className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0 cursor-pointer md:cursor-default"
             onClick={() => {
@@ -511,7 +517,7 @@ const fetchChunk = (chunkIdx: number) => {
                   initial={{ opacity: 1, y: 0 }}
                   animate={{ opacity: 0.1, y: -60, scale: 0.98 }}
                   exit={{ opacity: 0 }}
-                  className={`absolute text-black text-center max-w-3xl px-4 hidden md:block tracking-tight ${showMobilePanel ? 'text-xs' : 'text-sm md:text-lg'}`}
+                  className={`absolute text-black text-center max-w-3xl px-4 hidden md:block tracking-tight ${showSyntaxPanel ? 'text-xs' : 'text-sm md:text-lg'}`}
                   style={{ top: '15%' }}
                 >
                   {prevSentence}
@@ -526,7 +532,7 @@ const fetchChunk = (chunkIdx: number) => {
                 transition={{ type: "tween", duration: 0.3 }}
                 className="absolute flex flex-col items-center justify-center max-w-5xl w-full z-10 px-4 md:px-8"
               >
-                <div className={`text-black font-bold text-center leading-snug md:leading-tight tracking-tighter w-full transition-all duration-300 ${showMobilePanel ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl'}`}>
+                <div className={`text-black font-bold text-center leading-snug md:leading-tight tracking-tighter w-full transition-all duration-300 ${showSyntaxPanel ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl'}`}>
                   {currentSentence}
                 </div>
 
@@ -535,7 +541,7 @@ const fetchChunk = (chunkIdx: number) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className={`mt-4 md:mt-10 text-gray-500 font-mono text-center tracking-wide px-2 uppercase transition-all duration-300 ${showMobilePanel ? 'text-[10px]' : 'text-xs sm:text-sm md:text-base'}`}
+                    className={`mt-4 md:mt-10 text-gray-500 font-mono text-center tracking-wide px-2 uppercase transition-all duration-300 ${showSyntaxPanel ? 'text-[10px]' : 'text-xs sm:text-sm md:text-base'}`}
                   >
                     {analysis.translation}
                   </motion.div>
@@ -547,7 +553,7 @@ const fetchChunk = (chunkIdx: number) => {
                   key={`next-${currentIndex}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 0.05, y: 60, scale: 0.98 }}
-                  className={`absolute text-black text-center max-w-3xl px-4 hidden md:block tracking-tight ${showMobilePanel ? 'text-xs' : 'text-sm md:text-lg'}`}
+                  className={`absolute text-black text-center max-w-3xl px-4 hidden md:block tracking-tight ${showSyntaxPanel ? 'text-xs' : 'text-sm md:text-lg'}`}
                   style={{ bottom: '15%' }}
                 >
                   {nextSentence}
@@ -556,11 +562,11 @@ const fetchChunk = (chunkIdx: number) => {
             </AnimatePresence>
           </div>
           
-          {showMobilePanel && (
+          {showSyntaxPanel && (
             <div className="md:hidden h-[45vh] bg-white border-t border-black flex flex-col shadow-inner">
               <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 shrink-0">
                 <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
-                <button onClick={() => setShowMobilePanel(false)} className="text-black text-lg leading-none px-2 font-mono">×</button>
+                <button onClick={() => setShowSyntaxPanel(false)} className="text-black text-lg leading-none px-2 font-mono">×</button>
               </div>
               <div className="flex-1 p-5 overflow-y-auto">
                 {isAnalyzing ? (
@@ -592,7 +598,7 @@ const fetchChunk = (chunkIdx: number) => {
           )}
         </div>
 
-        <div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
+        {showSyntaxPanel && (<div className="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col z-10">
           <div className="p-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <h3 className="font-mono text-[10px] uppercase tracking-widest text-black">Syntax Analysis</h3>
             <span className="w-2 h-2 bg-black rounded-full" />
@@ -701,8 +707,8 @@ const fetchChunk = (chunkIdx: number) => {
           </button>
           
           <button 
-            onClick={() => setShowMobilePanel(!showMobilePanel)}
-            className={`md:hidden p-2 transition-colors ${showMobilePanel ? 'text-black' : 'text-gray-400 hover:text-black'}`}
+            onClick={() => setShowSyntaxPanel(!showSyntaxPanel)}
+            className={`md:hidden p-2 transition-colors ${showSyntaxPanel ? 'text-black' : 'text-gray-400 hover:text-black'}`}
           >
             <BookOpen className="w-4 h-4" />
           </button>
