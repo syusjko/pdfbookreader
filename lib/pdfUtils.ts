@@ -73,9 +73,11 @@ export function findStoryStartIndex(text: string): number {
 }
 
 export function splitIntoSentences(text: string): string[] {
-  // 1. 노이즈 제거 (URL, 웹 링크, [1], (1) 같은 각주)
-  let cleanText = text.replace(/https?:\/\/[^\s]+/g, ''); // URL 제거
-  cleanText = cleanText.replace(/www\.[^\s]+/g, '');
+  // 1. 노이즈 제거 (URL, 웹 링크, 파일 경로, 각주 등)
+  let cleanText = text.replace(/https?:\/\/[^\s]+/gi, ''); // http:// URL 제거
+  cleanText = cleanText.replace(/www\.[^\s]+/gi, ''); // www. URL 제거
+  cleanText = cleanText.replace(/file:\/\/[^\s]+/gi, ''); // file:// 로컬 경로 제거
+  cleanText = cleanText.replace(/[A-Z]:\\[^\s]+/gi, ''); // 윈도우 경로 (C:\...) 제거
   cleanText = cleanText.replace(/\[\d+\]/g, ''); // [1] 형태 각주 제거
   
   // 2. 문단(단락) 단위로 먼저 쪼개기 (제목/챕터명 고립시키기)
