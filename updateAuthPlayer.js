@@ -1,108 +1,123 @@
-const fs = require('fs');
-let code = fs.readFileSync('components/AuthPlayer.tsx', 'utf8');
+const fs = require("fs");
+let c = fs.readFileSync("components/AuthPlayer.tsx", "utf8");
 
-code = code.replace(/export default function Player\(\) \{/, 
-`import { Bookmark } from 'lucide-react'
+// 1. Add targetLang state
+c = c.replace(
+  "const [bookLang, setBookLang] = useState('en-US');",
+  "const [bookLang, setBookLang] = useState('en-US');\n  const [targetLang, setTargetLang] = useState('Korean');"
+);
 
-interface AuthPlayerProps {
-  bookId: string;
-  title: string;
-  signedUrl: string;
-  initialIndex: number;
-  initialBookmarks: number[];
-}
+// 2. Add targetLang to fetch('/api/analyze')
+c = c.replace(
+  "body: JSON.stringify({ sentences: chunkSentences, isAuth: true })",
+  "body: JSON.stringify({ sentences: chunkSentences, isAuth: true, targetLang })"
+);
 
-export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, initialBookmarks }: AuthPlayerProps) {`);
+// Add targetLang to useEffect dependency array for fetchChunk
+// Actually fetchChunk is defined inside the component and called in useEffect
+c = c.replace(
+  "[currentIndex, sentences, cacheTrigger]",
+  "[currentIndex, sentences, cacheTrigger, targetLang]"
+);
 
-code = code.replace(/const \[apiKey, setApiKey\] = useState\(''\)/, 
-`  const [bookmarks, setBookmarks] = useState<number[]>(initialBookmarks || [])
-  const [hasLoaded, setHasLoaded] = useState(false)`);
+// Wait, if targetLang changes, we need to clear analysis cache!
+// We can do that in the onChange of the new select.
 
-code = code.replace(/const \[currentSentenceIndex, setCurrentSentenceIndex\] = useState\(0\)/, 
-`  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(initialIndex || 0)`);
+// 3. Add Back to Dashboard Button and Bookmark Button at the top left/right
+// Find the floating menu block
+const noiseMenuStart = c.indexOf('{/* Floating White Noise Menu */}');
+const floatingButtons = `
+      {/* Top Left: Back to Dashboard */}
+      <button 
+        onClick={() => window.location.href = '/dashboard'}
+        className="absolute top-4 left-4 z-50 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-sm border border-gray-200 text-xs font-bold font-mono tracking-widest text-black hover:bg-gray-100 transition-all flex items-center gap-2"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        DASHBOARD
+      </button>
 
-code = code.replace(/const handleFileUpload = async \(e: React\.ChangeEvent<HTMLInputElement>\) => \{[\s\S]*?(?=\s+const playAudio)/, 
-`const loadPdfFromUrl = async () => {
-    if (hasLoaded) return;
-    setIsLoading(true);
-    setLoadingText('서버에서 오디오북을 가져오는 중...');
-    
-    try {
-      const response = await fetch(signedUrl);
-      const arrayBuffer = await response.arrayBuffer();
-      
-      setLoadingText('텍스트 분석 및 챕터 나누는 중...');
-      const extractedText = await extractTextFromPdf(arrayBuffer);
-      const parsedSentences = splitIntoSentences(extractedText);
-      setSentences(parsedSentences);
-      
-      if (initialIndex >= parsedSentences.length) {
-        setCurrentSentenceIndex(0);
-      }
-      setHasLoaded(true);
-    } catch (err) {
-      alert('PDF를 불러오는 중 오류가 발생했습니다: ' + err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      {/* Top Right Buttons */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
+        <button 
+          onClick={toggleBookmark}
+          className={\`w-10 h-10 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-sm border \${bookmarks.includes(currentIndex) ? 'border-yellow-400 text-yellow-500' : 'border-gray-200 text-gray-500'} hover:text-black hover:scale-105 transition-all\`}
+          title="북마크"
+        >
+          <Bookmark className="w-4 h-4" fill={bookmarks.includes(currentIndex) ? "currentColor" : "none"} />
+        </button>
+`;
 
-  useEffect(() => {
-    loadPdfFromUrl();
-  }, [signedUrl]);
+c = c.replace('{/* Floating White Noise Menu */}', floatingButtons + '\n      {/* Floating White Noise Menu */}');
+// But wait, the original noise menu is wrapped in `<div className="absolute top-4 right-4 z-50">`
+c = c.replace('<div className="absolute top-4 right-4 z-50">\n        <div className="relative">', '<div>\n        <div className="relative">');
 
-  // Save Progress Debounced
-  useEffect(() => {
-    if (!hasLoaded) return;
-    const timer = setTimeout(() => {
-      fetch('/api/books/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ book_id: bookId, last_read_index: currentSentenceIndex })
-      }).catch(console.error);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [currentSentenceIndex, hasLoaded, bookId]);
 
-  const toggleBookmark = () => {
-    const newBookmarks = bookmarks.includes(currentSentenceIndex)
-      ? bookmarks.filter(b => b !== currentSentenceIndex)
-      : [...bookmarks, currentSentenceIndex];
-    setBookmarks(newBookmarks);
-    
-    fetch('/api/books/progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ book_id: bookId, bookmarks: newBookmarks })
-    }).catch(console.error);
-  };
-`);
-
-code = code.replace(/body: JSON\.stringify\(\{ text, targetLanguage: 'ko', apiKey \}\)/g, 
-`body: JSON.stringify({ text, targetLanguage: 'ko', isAuth: true })`);
-
-code = code.replace(/if \(sentences\.length === 0\) \{[\s\S]*?return \([\s\S]*?\}\)/, 
-`if (sentences.length === 0) {
-    return (
-      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center font-sans">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <p className="font-bold text-lg text-gray-800">{loadingText}</p>
-      </div>
-    );
-  }`);
-
-code = code.replace(/<span className="font-semibold text-gray-800 truncate max-w-\[120px\] sm:max-w-\[200px\]">.+?<\/span>/, 
-`<span className="font-semibold text-gray-800 truncate max-w-[120px] sm:max-w-[200px]">{title}</span>`);
-
-code = code.replace(/(<button[\s\S]*?onClick=\{toggleTranslate\}[\s\S]*?<\/button>)/, 
-`$1
-          <button
-            onClick={toggleBookmark}
-            className={\`p-2.5 rounded-full transition-colors \${bookmarks.includes(currentSentenceIndex) ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}\`}
-            title="북마크"
+// 4. Update the bottom controls to have Audio Lang and Translation Lang
+const selectHTML = `<select 
+            value={bookLang} 
+            onChange={(e) => {
+               const newLang = e.target.value;
+               setBookLang(newLang);
+               setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.9);
+               // Clear audio cache to force re-fetch with new language
+               Object.values(audioCache.current).forEach(p => {
+                 p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
+               });
+               audioCache.current = {};
+               activeFetches.current.clear();
+            }}
+            className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
           >
-            <Bookmark className="w-4 h-4" fill={bookmarks.includes(currentSentenceIndex) ? "currentColor" : "none"} />
-          </button>`);
+            <option value="en-US">EN</option>
+            <option value="fr-FR">FR</option>
+            <option value="ko-KR">KO</option>
+            <option value="ja-JP">JA</option>
+          </select>`;
 
-fs.writeFileSync('components/AuthPlayer.tsx', code);
-console.log("Updated AuthPlayer.tsx");
+const newSelects = `<div className="flex flex-col items-center gap-1 relative group">
+            <span className="text-[7px] text-gray-300 font-mono tracking-widest absolute -top-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">AUDIO</span>
+            <select 
+              value={bookLang} 
+              onChange={(e) => {
+                 const newLang = e.target.value;
+                 setBookLang(newLang);
+                 setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.9);
+                 Object.values(audioCache.current).forEach(p => {
+                   p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
+                 });
+                 audioCache.current = {};
+                 activeFetches.current.clear();
+              }}
+              className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
+            >
+              <option value="en-US">EN</option>
+              <option value="fr-FR">FR</option>
+              <option value="ko-KR">KO</option>
+              <option value="ja-JP">JA</option>
+            </select>
+          </div>
+          
+          <div className="w-[1px] h-3 bg-gray-200" />
+          
+          <div className="flex flex-col items-center gap-1 relative group">
+            <span className="text-[7px] text-gray-300 font-mono tracking-widest absolute -top-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">TRANS</span>
+            <select 
+              value={targetLang} 
+              onChange={(e) => {
+                 setTargetLang(e.target.value);
+                 analysisCache.current = {}; // Clear analysis cache so it fetches new translation
+                 setCacheTrigger(prev => prev + 1); // Trigger fetch
+              }}
+              className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
+            >
+              <option value="Korean">KO</option>
+              <option value="English">EN</option>
+              <option value="Japanese">JA</option>
+              <option value="French">FR</option>
+            </select>
+          </div>`;
+
+c = c.replace(selectHTML, newSelects);
+
+fs.writeFileSync("components/AuthPlayer.tsx", c);
+console.log("Updated!");

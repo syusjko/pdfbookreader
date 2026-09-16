@@ -1,28 +1,17 @@
 const fs = require("fs");
-let content = fs.readFileSync("components/AuthPlayer.tsx", "utf8");
+let c = fs.readFileSync("components/AuthPlayer.tsx", "utf8");
 
-content = content.replace(/\[currentIndex, sentences, isAuth: true, cacheTrigger\]/g, "[currentIndex, sentences, cacheTrigger]");
-// Also fix any other `isAuth: true` in dependency arrays
-content = content.replace(/\[([^\]]*)isAuth:\s*true([^\]]*)\]/g, "[$1$2]");
-content = content.replace(/,(\s*,)+/g, ",");
-content = content.replace(/\[\s*,/g, "[");
-content = content.replace(/,\s*\]/g, "]");
+c = c.replace(
+  "      {/* Top Right Buttons */}",
+  "      </div>\n      {/* Top Right Buttons */}"
+);
 
-// Find the missing brace. We replaced the landing page block which had:
-// if (sentences.length === 0) { return ( ... ); }
-// Did we replace too much or too little?
-// original regex: /if \(sentences\.length === 0\) \{[\s\S]*?return \([\s\S]*?<\/div>\s*\);\s*\}/
-// The original code was:
-// if (sentences.length === 0) {
-//   return (
-//      <div...>
-//      </div>
-//   );
-// }
-// The regex `<\/div>\s*\);\s*\}` matches `</div> ); }`
-// Wait, the original `Player.tsx` landing page has `<main>...<footer>...</div>);}`
-// Let's check the end of the file.
-const endOfFile = content.substring(content.length - 100);
-console.log("EOF:", endOfFile);
-
-fs.writeFileSync("components/AuthPlayer.tsx", content);
+// Wait, I opened `<div className="absolute top-4 right-4 z-50 flex items-center gap-3">` in floatingButtons.
+// I need to close it AFTER the white noise menu.
+// Actually, the original code had `<div className="absolute top-4 right-4 z-50">` which wrapped the white noise menu.
+// I replaced that with `<div>` which is fine.
+// But `floatingButtons` opened a `<div className="absolute top-4 right-4 z-50 flex items-center gap-3">` and didn't close it!
+// Oh I see. The white noise menu should be INSIDE this gap-3 div!
+// Yes! The original code closed its `</div>` at the end of the white noise menu.
+// So if `floatingButtons` opened the wrapper, and then the original `</div>` closes it, it should be fine!
+// Wait! Let's check the exact structure.

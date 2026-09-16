@@ -37,6 +37,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [bookLang, setBookLang] = useState('en-US');
+  const [targetLang, setTargetLang] = useState('Korean');
 
   const [chapters, setChapters] = useState<{index: number, title: string}[]>([]);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
@@ -145,7 +146,7 @@ const fetchChunk = (chunkIdx: number) => {
     const promise = fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sentences: chunkSentences, isAuth: true })
+      body: JSON.stringify({ sentences: chunkSentences, isAuth: true, targetLang })
     })
     .then(res => res.json())
     .then(data => {
@@ -183,7 +184,7 @@ const fetchChunk = (chunkIdx: number) => {
     }
 
     fetchChunk(currentChunkIdx + 1);
-  }, [currentIndex, sentences, cacheTrigger]); 
+  }, [currentIndex, sentences, cacheTrigger, targetLang]); 
 
   const fetchAudioForIndex = (index: number): Promise<string | null> => {
     if (index >= sentences.length) return Promise.resolve(null);
@@ -331,8 +332,28 @@ const fetchChunk = (chunkIdx: number) => {
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-black relative overflow-hidden">
       
+      
+      {/* Top Left: Back to Dashboard */}
+      <button 
+        onClick={() => window.location.href = '/dashboard'}
+        className="absolute top-4 left-4 z-50 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-sm border border-gray-200 text-xs font-bold font-mono tracking-widest text-black hover:bg-gray-100 transition-all flex items-center gap-2"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        DASHBOARD
+      </button>
+
+      {/* Top Right Buttons */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
+        <button 
+          onClick={toggleBookmark}
+          className={`w-10 h-10 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full shadow-sm border ${bookmarks.includes(currentIndex) ? 'border-yellow-400 text-yellow-500' : 'border-gray-200 text-gray-500'} hover:text-black hover:scale-105 transition-all`}
+          title="북마크"
+        >
+          <Bookmark className="w-4 h-4" fill={bookmarks.includes(currentIndex) ? "currentColor" : "none"} />
+        </button>
+
       {/* Floating White Noise Menu */}
-      <div className="absolute top-4 right-4 z-50">
+      <div>
         <div className="relative">
           <button 
             onClick={() => setShowNoiseMenu(!showNoiseMenu)}
@@ -393,6 +414,7 @@ const fetchChunk = (chunkIdx: number) => {
             )}
           </AnimatePresence>
         </div>
+      </div>
       </div>
 
       <audio
@@ -693,26 +715,48 @@ const fetchChunk = (chunkIdx: number) => {
             {readingSpeed}x
           </button>
           
-          <select 
-            value={bookLang} 
-            onChange={(e) => {
-               const newLang = e.target.value;
-               setBookLang(newLang);
-               setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.9);
-               // Clear audio cache to force re-fetch with new language
-               Object.values(audioCache.current).forEach(p => {
-                 p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
-               });
-               audioCache.current = {};
-               activeFetches.current.clear();
-            }}
-            className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
-          >
-            <option value="en-US">EN</option>
-            <option value="fr-FR">FR</option>
-            <option value="ko-KR">KO</option>
-            <option value="ja-JP">JA</option>
-          </select>
+          <div className="flex flex-col items-center gap-1 relative group">
+            <span className="text-[7px] text-gray-300 font-mono tracking-widest absolute -top-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">AUDIO</span>
+            <select 
+              value={bookLang} 
+              onChange={(e) => {
+                 const newLang = e.target.value;
+                 setBookLang(newLang);
+                 setReadingSpeed(newLang.startsWith('en') ? 1.0 : 0.9);
+                 Object.values(audioCache.current).forEach(p => {
+                   p.then(url => { if (url) URL.revokeObjectURL(url); }).catch(() => {});
+                 });
+                 audioCache.current = {};
+                 activeFetches.current.clear();
+              }}
+              className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
+            >
+              <option value="en-US">EN</option>
+              <option value="fr-FR">FR</option>
+              <option value="ko-KR">KO</option>
+              <option value="ja-JP">JA</option>
+            </select>
+          </div>
+          
+          <div className="w-[1px] h-3 bg-gray-200" />
+          
+          <div className="flex flex-col items-center gap-1 relative group">
+            <span className="text-[7px] text-gray-300 font-mono tracking-widest absolute -top-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">TRANS</span>
+            <select 
+              value={targetLang} 
+              onChange={(e) => {
+                 setTargetLang(e.target.value);
+                 analysisCache.current = {}; // Clear analysis cache so it fetches new translation
+                 setCacheTrigger(prev => prev + 1); // Trigger fetch
+              }}
+              className="text-[10px] font-mono font-bold text-gray-400 hover:text-black transition-colors bg-transparent outline-none cursor-pointer text-center appearance-none"
+            >
+              <option value="Korean">KO</option>
+              <option value="English">EN</option>
+              <option value="Japanese">JA</option>
+              <option value="French">FR</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>

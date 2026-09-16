@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { sentences, apiKey, isAuth } = await req.json();
+    const { sentences, apiKey, isAuth, targetLang = 'Korean' } = await req.json();
 
     const finalApiKey = apiKey || (isAuth ? process.env.GEMINI_API_KEY : undefined);
 
@@ -19,11 +19,11 @@ Provide a JSON array response where each element corresponds to the input senten
 Make sure the output array length matches the input array length exactly.
 
 Each element must be an object with exactly two keys:
-1. "translation": A highly polished, beautiful, and completely natural Korean literary translation (완벽한 소설식 의역). You MUST rearrange the sentence structure to fit natural Korean grammar perfectly. Absolutely DO NOT mirror the foreign word order. (e.g., Do not write "...본 적이 있다, 멋진 그림을", you must write "...멋진 그림을 본 적이 있다"). Imagine you are a professional human translator publishing a best-selling novel.
-2. "breakdown": A literal, chunk-by-chunk reading guide (직독직해). Break the sentence into logical phrases. Each object must have:
+1. "translation": A highly polished, beautiful, and completely natural ${targetLang} literary translation. You MUST rearrange the sentence structure to fit natural ${targetLang} grammar perfectly. Absolutely DO NOT mirror the foreign word order. Imagine you are a professional human translator publishing a best-selling novel.
+2. "breakdown": A literal, chunk-by-chunk reading guide (translated to ${targetLang}). Break the sentence into logical phrases. Each object must have:
    - "chunk": The exact chunk of the original text.
-   - "meaning": The literal translation of just this chunk (직역).
-   - "role": The grammatical role (e.g., "주어+동사", "전치사구").
+   - "meaning": The literal translation of just this chunk in ${targetLang}.
+   - "role": The grammatical role (e.g., "noun", "verb phrase").
 
 Sentences to analyze:
 ${JSON.stringify(sentences)}
