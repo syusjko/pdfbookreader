@@ -71,8 +71,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playAbortRef = useRef<AbortController | null>(null);
 
-  const sessionToken = useRef(Date.now()).current;
-
+  
   
   const loadPdfFromUrl = async () => {
     if (hasLoaded) return;
@@ -150,7 +149,7 @@ const fetchChunk = (chunkIdx: number) => {
     const promise = fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sentences: chunkSentences, isAuth: true, targetLang })
+      body: JSON.stringify({ sentences: chunkSentences, isAuth: true, targetLang, bookId, chunkIndex: chunkIdx })
     })
     .then(res => res.json())
     .then(data => {
@@ -199,7 +198,7 @@ const fetchChunk = (chunkIdx: number) => {
     setPrefetchStatus('Buffering AI Voice...');
     const text = sentences[index];
     
-    const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}&_t=${sessionToken}`;
+    const apiUrl = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(bookLang)}&speed=${encodeURIComponent(readingSpeed)}`;
 
     const promise = fetch(apiUrl)
       .then(res => {
