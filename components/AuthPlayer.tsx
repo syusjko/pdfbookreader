@@ -27,7 +27,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   const [isAudioLoading, setIsAudioLoading] = useState(false); 
   const [prefetchStatus, setPrefetchStatus] = useState<string>('');
   
-  // isAuth: true not needed
+  // apiKey removed
   
   const [analysis, setAnalysis] = useState<{
     translation?: string; 
@@ -75,7 +75,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   const loadPdfFromUrl = async () => {
     if (hasLoaded) return;
     setIsLoading(true);
-    setLoadingText('서버에서 오디오북을 가져오는 중...');
+    setLoadingText('서버에서 책 데이터를 가져오는 중...');
     
     try {
       const response = await fetch(signedUrl);
@@ -83,24 +83,53 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
       
       setLoadingText('텍스트 분석 및 챕터 나누는 중...');
       const extractedText = await extractTextFromPdf(arrayBuffer);
-      const parsedSentences = splitIntoSentences(extractedText);
-      setSentences(parsedSentences);
+      const split = splitIntoSentences(extractedText);
       
-      if (initialIndex >= parsedSentences.length) {
+      const sampleText = split.slice(0, 100).join(' ');
+      const krCount = (sampleText.match(/[가-힣]/g) || []).length;
+      const jpCount = (sampleText.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/g) || []).length;
+      const frCount = (sampleText.match(/[éèêëàâîïôùûüçœæ]/gi) || []).length;
+      if (krCount > sampleText.length * 0.1) { setBookLang('ko-KR'); setReadingSpeed(1.0); }
+      else if (jpCount > sampleText.length * 0.1) { setBookLang('ja-JP'); setReadingSpeed(0.9); }
+      else if (frCount > sampleText.length * 0.01) { setBookLang('fr-FR'); setReadingSpeed(0.9); }
+      else { setBookLang('en-US'); setReadingSpeed(1.0); }
+
+      const extractedChapters: {index: number, title: string}[] = [];
+      const chRegex = /^(PREMIER|DEUXI[EE]ME|TROISI[EE]ME|QUATRI[EE]ME|CINQUI[EE]ME|SIXI[EE]ME|SEPTI[EE]ME|HUITI[EE]ME|NEUVI[EE]ME|DIXI[EE]ME)\s+CHAPITRE|^(CHAPITRE|CHAPTER)\s*(?:[IVX]+|\d+)|^제\s*\d+\s*장/i;
+      const romanStandalone = /^([IVXL]+)\.?$/i;
+
+      for (let i = 0; i < split.length; i++) {
+        const s = split[i].trim();
+        const match = s.match(chRegex);
+        if (match) {
+          extractedChapters.push({ index: i, title: match[0].toUpperCase() });
+        } else if (s.length < 10 && romanStandalone.test(s)) {
+          extractedChapters.push({ index: i, title: s.toUpperCase() });
+        }
+      }
+      
+      setChapters(extractedChapters);
+      setSentences(split);
+      if (initialIndex >= split.length) {
         setCurrentIndex(0);
       }
       setHasLoaded(true);
+      setShowMobilePanel(true);
     } catch (err) {
-      alert('PDF를 불러오는 중 오류가 발생했습니다: ' + err.message);
+      console.error(err);
+      alert('PDF 파싱 중 오류가 발생했습니다: ' + (err?.message || String(err)));
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadPdfFromUrl();
+    if (signedUrl && !hasLoaded) {
+      loadPdfFromUrl();
+    }
   }, [signedUrl]);
 
+  // Save Progress
   useEffect(() => {
     if (!hasLoaded || sentences.length === 0) return;
     const timer = setTimeout(() => {
@@ -126,7 +155,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
     }).catch(console.error);
   };
 
-"use client";
+  "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -155,7 +184,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   const [isAudioLoading, setIsAudioLoading] = useState(false); 
   const [prefetchStatus, setPrefetchStatus] = useState<string>('');
   
-  // isAuth: true not needed
+  // apiKey removed
   
   const [analysis, setAnalysis] = useState<{
     translation?: string; 
@@ -257,7 +286,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
       
       setCacheTrigger(0);
       
-      if (isAuth: true.trim()) {
+      if (true) {
         setShowMobilePanel(true);
       }
     } catch (err: any) {
@@ -268,7 +297,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   };
 
   const fetchChunk = (chunkIdx: number) => {
-    if (!isAuth: true || chunkIdx * CHUNK_SIZE >= sentences.length) return;
+    if (!apiKey || chunkIdx * CHUNK_SIZE >= sentences.length) return;
     if (analysisCache.current[chunkIdx]) return; 
     
     const chunkSentences = sentences.slice(chunkIdx * CHUNK_SIZE, (chunkIdx + 1) * CHUNK_SIZE);
@@ -276,7 +305,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
     const promise = fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sentences: chunkSentences, isAuth: true })
+      body: JSON.stringify({ sentences: chunkSentences, apiKey })
     })
     .then(res => res.json())
     .then(data => {
@@ -295,7 +324,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
   };
 
   useEffect(() => {
-    if (sentences.length === 0 || !isAuth: true) return;
+    if (sentences.length === 0 || !apiKey) return;
 
     const currentChunkIdx = Math.floor(currentIndex / CHUNK_SIZE);
     const relativeIndex = currentIndex % CHUNK_SIZE;
@@ -314,7 +343,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
     }
 
     fetchChunk(currentChunkIdx + 1);
-  }, [currentIndex, sentences, isAuth: true, cacheTrigger]); 
+  }, [currentIndex, sentences, cacheTrigger]); 
 
   const fetchAudioForIndex = (index: number): Promise<string | null> => {
     if (index >= sentences.length) return Promise.resolve(null);
@@ -442,22 +471,10 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
     return (
       <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center font-sans">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <p className="font-bold text-lg text-gray-800">{loadingText}</p>
+        <p className="font-bold text-lg text-gray-800">{loadingText || "오디오북을 불러오는 중..."}</p>
       </div>
     );
   }
-
-  const prevSentence = currentIndex > 0 ? sentences[currentIndex - 1] : '';
-  const currentSentence = sentences[currentIndex];
-  const nextSentence = currentIndex < sentences.length - 1 ? sentences[currentIndex + 1] : '';
-
-  const grammarList = Array.isArray(analysis?.grammar) 
-    ? analysis.grammar 
-    : (typeof analysis?.grammar === 'string' 
-        ? (analysis.grammar as string).split('\n').filter(s => s.trim().length > 0) 
-        : []);
-
-  const breakdownList = Array.isArray(analysis?.breakdown) ? analysis.breakdown : [];
 
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-black relative overflow-hidden">
@@ -683,7 +700,7 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
           </div>
           
           <div className="flex-1 p-6 overflow-y-auto">
-            {!isAuth: true ? (
+            {!apiKey ? (
               <div className="text-center text-gray-400 mt-10">
                 <p className="text-xs font-mono uppercase tracking-widest mb-2">[ API_KEY_REQUIRED ]</p>
                 <p className="text-[10px] text-gray-400">Settings &gt; API Key</p>
@@ -848,4 +865,5 @@ export default function AuthPlayer({ bookId, title, signedUrl, initialIndex, ini
       </div>
     </div>
   );
+}
 }
