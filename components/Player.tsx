@@ -307,7 +307,7 @@ export default function Player() {
         {/* Loading overlay */}
         {isLoading && (
           <div className="fixed inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-black" />
             <p className="font-bold text-lg text-gray-800">{loadingText}</p>
             <p className="text-sm text-gray-500">파일 크기에 따라 시간이 걸릴 수 있습니다.</p>
           </div>
@@ -320,7 +320,7 @@ export default function Player() {
             {/* Logo area */}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-sm">
                   <BookOpen className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold tracking-tight text-gray-800 hidden sm:block">BookReader</span>
@@ -328,7 +328,7 @@ export default function Player() {
               
               {/* Main Nav Links (Desktop) */}
               <nav className="hidden md:flex items-center gap-6 ml-4">
-                <a href="#" className="text-gray-900 font-semibold border-b-2 border-blue-600 pb-5 pt-5">투데이</a>
+                <a href="#" className="text-gray-900 font-semibold border-b-2 border-black pb-5 pt-5">투데이</a>
                 <a href="#" className="text-gray-500 hover:text-gray-900 font-medium py-5">오디오북</a>
                 <a href="#" className="text-gray-500 hover:text-gray-900 font-medium py-5">AI 번역</a>
               </nav>
@@ -356,7 +356,7 @@ export default function Player() {
         <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           
           {/* ── Hero Banner (Millie's Library Style) ── */}
-          <section className="relative w-full bg-gradient-to-r from-blue-700 to-indigo-800 rounded-3xl overflow-hidden shadow-xl mb-12 sm:mb-16">
+          <section className="relative w-full bg-black rounded-3xl overflow-hidden shadow-xl mb-12 sm:mb-16">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
             
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-8 py-12 md:p-16 gap-8">
@@ -366,15 +366,11 @@ export default function Player() {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4 break-keep">
                   어떤 PDF든<br />나만의 오디오북으로.
                 </h1>
-                <p className="text-blue-100 text-base sm:text-lg mb-8 leading-relaxed font-medium break-keep">
+                <p className="text-gray-300 text-base sm:text-lg mb-8 leading-relaxed font-medium break-keep">
                   파일을 업로드하면 AI가 원어민 발음으로 낭독하고,<br className="hidden md:block" />
                   문장 구조를 분석하여 직독직해를 제공합니다.
                 </p>
-                <div className="hidden md:flex items-center gap-2 text-sm text-blue-200 bg-black/20 w-fit px-4 py-2 rounded-full backdrop-blur-sm">
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                  </span>
+                <div className="hidden md:flex items-center gap-2 text-sm text-gray-300 border border-gray-800 bg-white/5 w-fit px-4 py-2 rounded-full backdrop-blur-sm">
                   하루 3권 무료 분석 제공
                 </div>
               </div>
@@ -384,10 +380,10 @@ export default function Player() {
                 <div className="bg-white rounded-2xl shadow-2xl p-6 transform transition-transform hover:-translate-y-1 duration-300">
                   <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">지금 바로 시작하기</h3>
                   
-                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-blue-200 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 cursor-pointer transition-all rounded-xl group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-blue-100 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                    <UploadCloud className="w-10 h-10 text-blue-500 mb-3 transform group-hover:scale-110 transition-transform duration-300" />
-                    <p className="text-base font-bold text-blue-700 mb-1">PDF 파일 업로드</p>
+                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 hover:border-black bg-gray-50/50 hover:bg-gray-50 cursor-pointer transition-all rounded-xl group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gray-200 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                    <UploadCloud className="w-10 h-10 text-black mb-3 transform group-hover:scale-110 transition-transform duration-300" />
+                    <p className="text-base font-bold text-black mb-1">PDF 파일 업로드</p>
                     <p className="text-xs text-gray-500">클릭하거나 파일을 이곳에 놓으세요</p>
                     <input type="file" accept="application/pdf" className="hidden" onChange={handleFileUpload} />
                   </label>
@@ -396,25 +392,7 @@ export default function Player() {
             </div>
           </section>
 
-          {/* ── Feature Icons (Millie's Library Style) ── */}
-          <section className="mb-16">
-            <div className="flex flex-wrap justify-center gap-6 sm:gap-10 md:gap-16">
-              {[
-                { icon: <Headphones className="w-6 h-6 text-indigo-600" />, label: 'AI 낭독' },
-                { icon: <BookOpen className="w-6 h-6 text-emerald-600" />, label: '직독직해' },
-                { icon: <Volume2 className="w-6 h-6 text-sky-600" />, label: '자연스러운 호흡' },
-                { icon: <SkipForward className="w-6 h-6 text-amber-600" />, label: '챕터 탐색' },
-                { icon: <UploadCloud className="w-6 h-6 text-purple-600" />, label: '무제한 업로드' },
-              ].map((feature, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-3 cursor-pointer group">
-                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100 group-hover:bg-white group-hover:shadow-md transition-all duration-300 transform group-hover:-translate-y-1">
-                    {feature.icon}
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">{feature.label}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+          
 
           {/* ── API Key Input (Bottom Section) ── */}
           <section className="max-w-2xl mx-auto bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100">
@@ -423,7 +401,7 @@ export default function Player() {
                 <h4 className="text-base font-bold text-gray-800 mb-1">체험판 API 키 설정</h4>
                 <p className="text-xs text-gray-500 break-keep">로그인 없이 사용하려면 Gemini API 키를 입력하세요. 분석 기능이 활성화됩니다.</p>
               </div>
-              <div className="w-full sm:w-72 flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all shadow-sm">
+              <div className="w-full sm:w-72 flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl focus-within:border-black focus-within:ring-1 focus-within:ring-black transition-all shadow-sm">
                 <Key className="w-4 h-4 text-gray-400 shrink-0" />
                 <input
                   type="password"
@@ -570,7 +548,7 @@ export default function Player() {
         
         <div className={`flex-1 flex flex-col transition-all duration-300 ${showMobilePanel ? 'h-[40vh] md:h-full' : 'h-full'}`}>
           <div 
-            className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-[#fafafa] min-h-0 cursor-pointer md:cursor-default"
+            className="flex-1 relative flex flex-col justify-center items-center p-4 md:p-8 bg-white min-h-0 cursor-pointer md:cursor-default"
             onClick={() => {
               if (isPlaying) setShowControls(!showControls);
             }}
