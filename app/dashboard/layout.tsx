@@ -1,6 +1,6 @@
 import { createClient } from '../../utils/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import Sidebar from './Sidebar'
 
 export default async function DashboardLayout({
   children,
@@ -14,30 +14,21 @@ export default async function DashboardLayout({
     redirect('/auth/login')
   }
 
+  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/dashboard" className="text-xl font-bold text-gray-900">
-                📚 내 서재
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">{user.email}</span>
-              <form action="/auth/logout" method="post">
-                <button className="text-sm text-red-600 hover:text-red-800">
-                  로그아웃
-                </button>
-              </form>
-            </div>
+    <div className="min-h-screen bg-[#fafafa] font-sans">
+      <div className="flex min-h-screen">
+        {/* Left Sidebar */}
+        <Sidebar userEmail={user.email || ''} userName={userName} />
+
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 pt-14 lg:pt-0">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {children}
           </div>
-        </div>
-      </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
-      </main>
+        </main>
+      </div>
     </div>
   )
 }
