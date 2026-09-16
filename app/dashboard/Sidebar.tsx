@@ -16,7 +16,7 @@ export default function Sidebar({ userEmail, userName }: SidebarProps) {
 
   const navItems = [
     { href: '/dashboard', label: '내 서재', icon: Home },
-    { href: '/dashboard', label: '오디오북', icon: Headphones },
+    { href: '/dashboard/audiobooks', label: '오디오북', icon: Headphones },
     { href: '/', label: '체험판', icon: Upload },
   ]
 

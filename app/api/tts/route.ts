@@ -110,8 +110,20 @@ export async function GET(req: Request) {
       if (isEnglish) {
         // English uses TikTok
         audioBuffer = await fetchTikTokAudio(chunk.trim(), 'en_male_narration');
+      } else if (tl === 'ko') {
+        // Korean uses TikTok
+        audioBuffer = await fetchTikTokAudio(chunk.trim(), 'kr_002');
+        if (!audioBuffer) {
+          audioBuffer = await fetchGoogleNeural2Audio(chunk.trim(), tl);
+        }
+      } else if (tl === 'ja') {
+        // Japanese uses TikTok
+        audioBuffer = await fetchTikTokAudio(chunk.trim(), 'jp_006');
+        if (!audioBuffer) {
+          audioBuffer = await fetchGoogleNeural2Audio(chunk.trim(), tl);
+        }
       } else {
-        // Non-English uses Google Cloud Neural2
+        // Non-English (e.g. French) uses Google Cloud Neural2
         audioBuffer = await fetchGoogleNeural2Audio(chunk.trim(), tl);
       }
       
