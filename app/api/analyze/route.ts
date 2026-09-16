@@ -3,13 +3,15 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { sentences, apiKey } = await req.json();
+    const { sentences, apiKey, isAuth } = await req.json();
 
-    if (!apiKey) {
+    const finalApiKey = apiKey || (isAuth ? process.env.GEMINI_API_KEY : undefined);
+
+    if (!finalApiKey) {
       return NextResponse.json({ error: 'API Key가 필요합니다.' }, { status: 400 });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: finalApiKey });
     
     const prompt = `
 You are a master literary translator and a rigorous language tutor. Analyze the following JSON array of sentences.
